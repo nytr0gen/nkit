@@ -152,6 +152,7 @@ ComponentName/
 - The nvertor transform registry lives in `packages/frontend/src/nvertor/render.ts`; add new functions there instead of adding one-off parser branches.
 - nvertor generator tags such as `uuid` and `ts` should accept both `<@tag>` and `<@tag/>`; do not require closing tags for generators.
 - nvertor transform tags may use the exact wildcard closing form `</@>` to close the current open transform; named closing tags should stay strict and must still match the current transform when present.
+- `repeat` is a transform-only nvertor tag with required integer argument syntax `<@repeat(n)>...</@>`; allow `0`, reject spaces/decimals/negatives, and fail closed above `10000`.
 - `htmld` must stay a pure string/entity decoder in `packages/frontend/src/nvertor/render.ts`; do not reintroduce DOM parsing through `innerHTML` or `DOMParser`.
 - nvertor preview, copy, and send rerender from the current template source each time; do not cache rendered results just to stabilize `uuid` or `ts`.
 - Replay editor text is normalized to `\n`, so nvertor must convert rendered requests back to HTTP `\r\n` before copy/send or Replay history may display the sent request as a single line.

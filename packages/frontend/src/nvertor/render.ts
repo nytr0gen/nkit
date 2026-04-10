@@ -6,6 +6,7 @@ type TextNode = {
 };
 
 type TransformNode = {
+  argument?: number;
   children: Node[];
   kind: "Transform";
   name: TransformName;
@@ -16,7 +17,7 @@ type Node = TextNode | TransformNode;
 
 type TransformDefinition =
   | {
-      apply: (input: string) => Result<string>;
+      apply: (input: string, argument?: number) => Result<string>;
       kind: "transform";
     }
   | {
@@ -29,6 +30,7 @@ export type TransformName =
   | "b64d"
   | "html"
   | "htmld"
+  | "repeat"
   | "ts"
   | "url"
   | "urlall"
@@ -59,6 +61,7 @@ type ParseResult =
     };
 
 const encoder = new TextEncoder();
+const maxRepeatCount = 10000;
 
 const binaryFromUtf8 = (value: string) => {
   const bytes = encoder.encode(value);
@@ -171,6 +174,16 @@ const transformRegistry = {
       return ok(decodeHtml(value));
     },
   },
+  repeat: {
+    kind: "transform",
+    apply: (value, argument) => {
+      if (argument === undefined) {
+        return invalid("Missing repeat count");
+      }
+
+      return ok(value.repeat(argument));
+    },
+  },
   ts: {
     kind: "generator",
     apply: () => {
@@ -180,7 +193,7 @@ const transformRegistry = {
   url: {
     kind: "transform",
     apply: (value) => {
-      return ok(encodeURIComponent(value));
+      return ok(encodeURIComponent(value).replaceAll("'", "%27"));
     },
   },
   urlall: {
@@ -228,7 +241,9 @@ const formatTag = (tagName: TransformName) => {
 const wildcardCloseTag = "</@>";
 
 const parseOpenTag = (input: string, offset: number) => {
-  const match = input.slice(offset).match(/^<@([a-z][a-z0-9]*)(\s*\/)?>/);
+  const match = input
+    .slice(offset)
+    .match(/^<@([a-z][a-z0-9]*)(?:\(([^)]*)\))?(\s*\/)?>/);
   if (match === null) {
     return invalid("Invalid transform tag syntax");
   }
@@ -242,14 +257,47 @@ const parseOpenTag = (input: string, offset: number) => {
     return invalid(`Unknown transform ${tagName}`);
   }
 
+  const argument = match[2];
+  if (tagName === "repeat") {
+    if (argument === undefined) {
+      return invalid("Missing repeat count");
+    }
+
+    if (!/^\d+$/.test(argument)) {
+      return invalid("Invalid repeat count");
+    }
+
+    const repeatCount = Number.parseInt(argument, 10);
+    if (repeatCount > maxRepeatCount) {
+      return invalid(`Repeat count cannot exceed ${maxRepeatCount}`);
+    }
+
+    const fullMatch = match[0];
+    if (fullMatch === undefined) {
+      return invalid("Invalid transform tag syntax");
+    }
+
+    return ok({
+      argument: repeatCount,
+      nextOffset: offset + fullMatch.length,
+      selfClosing: match[3] !== undefined,
+      tagName,
+    });
+  }
+
+  if (argument !== undefined) {
+    return invalid(`${formatTag(tagName)} does not accept arguments`);
+  }
+
   const fullMatch = match[0];
   if (fullMatch === undefined) {
     return invalid("Invalid transform tag syntax");
   }
 
   return ok({
+    argument: undefined,
     nextOffset: offset + fullMatch.length,
-    selfClosing: match[2] !== undefined,
+    selfClosing: match[3] !== undefined,
     tagName,
   });
 };
@@ -376,6 +424,7 @@ const parseNodes = (
       const definition = transformRegistry[openTag.value.tagName];
       if (definition.kind === "generator") {
         nodes.push({
+          argument: openTag.value.argument,
           children: [],
           kind: "Transform",
           name: openTag.value.tagName,
@@ -406,6 +455,7 @@ const parseNodes = (
       }
 
       nodes.push({
+        argument: openTag.value.argument,
         children: childResult.value,
         kind: "Transform",
         name: openTag.value.tagName,
@@ -457,7 +507,7 @@ const renderNodes = (nodes: Node[]): RenderResult => {
       return childResult;
     }
 
-    const transformResult = definition.apply(childResult.value);
+    const transformResult = definition.apply(childResult.value, node.argument);
     if (transformResult.kind === "Error") {
       return {
         error: transformResult.error,
