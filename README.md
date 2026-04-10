@@ -1,10 +1,10 @@
-# VueJS Frontend Template
+# nkit
 
-This template should be used as a starting point for creating a new plugin with a VueJS frontend.
+nytr0gen toolkit for caido.
 
 ## Features
 
-- [pnpm](https://pnpm.io/) as package manager
-- [TypeScript](https://www.typescriptlang.org/)
-- [VueJS](https://vuejs.org/)
-- [PrimeVue](https://primevue.org/) for UI components
+- Copy URL from request panes, Replay, HTTP History, and Automate with `Ctrl/Cmd+Shift+C`
+- Copy URL from HTTP History selected rows through the right-click menu
+- Paste URL into Replay with `Ctrl/Cmd+Shift+V`
+- Replay paste trims input, prefixes `https://` when missing, updates the target, and sends the request

@@ -7,16 +7,16 @@ import tailwindCaido from "@caido/tailwindcss";
 import path from "path";
 import prefixwrap from "postcss-prefixwrap";
 
-const id = "frontend-vue";
+const id = "nkit";
 export default defineConfig({
   id,
-  name: "Frontend Vue",
-  description: "Plugin template with frontend using VueJS",
+  name: "nkit",
+  description: "nytr0gen toolkit for caido",
   version: "0.0.0",
   author: {
-    name: "Caido Labs Inc.",
-    email: "dev@caido.io",
-    url: "https://caido.io",
+    name: "nytr0gen",
+    email: "xxxxx@example.com",
+    url: "https://x.com/nytr0gen_",
   },
   plugins: [
     {
@@ -36,16 +36,16 @@ export default defineConfig({
         build: {
           rollupOptions: {
             external: [
-              '@caido/frontend-sdk', 
-              "@codemirror/autocomplete", 
-              "@codemirror/commands", 
-              "@codemirror/language", 
-              "@codemirror/lint", 
-              "@codemirror/search", 
-              "@codemirror/state", 
-              "@codemirror/view", 
-              "@lezer/common", 
-              "@lezer/highlight", 
+              '@caido/frontend-sdk',
+              "@codemirror/autocomplete",
+              "@codemirror/commands",
+              "@codemirror/language",
+              "@codemirror/lint",
+              "@codemirror/search",
+              "@codemirror/state",
+              "@codemirror/view",
+              "@lezer/common",
+              "@lezer/highlight",
               "@lezer/lr",
               "vue",
 
