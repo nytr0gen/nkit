@@ -225,6 +225,8 @@ const formatTag = (tagName: TransformName) => {
   return `<@${tagName}>`;
 };
 
+const wildcardCloseTag = "</@>";
+
 const parseOpenTag = (input: string, offset: number) => {
   const match = input.slice(offset).match(/^<@([a-z][a-z0-9]*)(\s*\/)?>/);
   if (match === null) {
@@ -253,6 +255,13 @@ const parseOpenTag = (input: string, offset: number) => {
 };
 
 const parseCloseTag = (input: string, offset: number) => {
+  if (input.startsWith(wildcardCloseTag, offset)) {
+    return ok({
+      nextOffset: offset + wildcardCloseTag.length,
+      tagName: undefined,
+    });
+  }
+
   const match = input.slice(offset).match(/^<\/@([a-z][a-z0-9]*)\s*>/);
   if (match === null) {
     return invalid("Invalid closing transform tag syntax");
@@ -324,14 +333,20 @@ const parseNodes = (
 
       if (expectedTagName === undefined) {
         return {
-          error: `Unexpected closing tag ${formatTag(closeTag.value.tagName)}`,
+          error:
+            closeTag.value.tagName === undefined
+              ? `Unexpected closing tag ${wildcardCloseTag}`
+              : `Unexpected closing tag ${formatTag(closeTag.value.tagName)}`,
           kind: "Error",
           offset: cursor,
           tagName: closeTag.value.tagName,
         };
       }
 
-      if (closeTag.value.tagName !== expectedTagName) {
+      if (
+        closeTag.value.tagName !== undefined &&
+        closeTag.value.tagName !== expectedTagName
+      ) {
         return {
           error: `Expected closing tag </@${expectedTagName}>`,
           kind: "Error",
@@ -359,16 +374,7 @@ const parseNodes = (
       }
 
       const definition = transformRegistry[openTag.value.tagName];
-      if (openTag.value.selfClosing) {
-        if (definition.kind !== "generator") {
-          return {
-            error: `${formatTag(openTag.value.tagName)} cannot be self-closing`,
-            kind: "Error",
-            offset: cursor,
-            tagName: openTag.value.tagName,
-          };
-        }
-
+      if (definition.kind === "generator") {
         nodes.push({
           children: [],
           kind: "Transform",
@@ -380,9 +386,9 @@ const parseNodes = (
         continue;
       }
 
-      if (definition.kind === "generator") {
+      if (openTag.value.selfClosing) {
         return {
-          error: `${formatTag(openTag.value.tagName)} must be self-closing`,
+          error: `${formatTag(openTag.value.tagName)} cannot be self-closing`,
           kind: "Error",
           offset: cursor,
           tagName: openTag.value.tagName,
