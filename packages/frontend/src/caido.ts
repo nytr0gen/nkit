@@ -1,5 +1,6 @@
 import type { Caido } from "@caido/sdk-frontend";
 import type { Extension } from "@codemirror/state";
+import type { EditorView } from "@codemirror/view";
 import type { API } from "backend";
 import type { Component } from "vue";
 
@@ -97,6 +98,10 @@ type GlobalContext = {
   };
 };
 
+type ActiveEditor = {
+  getEditorView: () => EditorView;
+};
+
 export const ReplaySlot = {
   SessionToolbarPrimary: "session-toolbar-primary",
   SessionToolbarSecondary: "session-toolbar-secondary",
@@ -133,6 +138,7 @@ export type FrontendSDK = Omit<
     sendRequest: (sessionId: ID, options: SendRequestOptions) => Promise<void>;
   };
   window: BaseFrontendSDK["window"] & {
+    getActiveEditor: () => ActiveEditor | undefined;
     getContext: () => GlobalContext;
     onContextChange: (
       callback: (context: GlobalContext) => void,

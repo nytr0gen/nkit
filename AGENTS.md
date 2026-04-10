@@ -115,9 +115,7 @@ ComponentName/
 - `RequestRowContext` is reliable for right-click row actions, but not for global shortcuts.
 - HTTP History row selection alone is not enough for keyboard copy. The supported keyboard path is the readonly request editor that opens when a row is clicked.
 - Caido does not currently expose a supported API to change the default built-in HTTP History request tab from `Original Request` to another built-in variant.
-- The current HTTP History customization is a supported custom request view mode labeled `Final`.
-- Caido's `sdk.ui.httpRequestEditor()` is not a reliable generic "load arbitrary raw request text into a custom pane" API.
-- The `Final` view therefore uses a self-owned read-only CodeMirror viewer with lightweight HTTP highlighting instead of trying to embed Caido's built-in request editor.
+- The old custom HTTP History `Final` request view mode was removed; the active customization is now the `Ctrl/Cmd+Shift+E` request-alteration toggle plus the global CSS override for the pane header text width.
 - Imported frontend CSS is prefix-wrapped under `#plugin--nkit` by the build config.
 - That means imported CSS will not affect Caido-hosted panes outside the plugin root, such as HTTP History view modes rendered in core UI containers.
 - For those cases, inject a guarded global `<style>` tag at runtime instead of relying on a normal imported stylesheet.
@@ -126,7 +124,9 @@ ComponentName/
   - the stable DOM entry point was the combobox with `aria-label="Request alteration"`
   - the overlay list was linked through `aria-controls`
   - bounded frame-based waits worked better than fixed `setTimeout` sleeps
-  - clicking the built-in dropdown changed focus in undesirable ways
+  - the HTTP History `Ctrl/Cmd+Shift+E` toggle should prefer a normal Caido command plus `sdk.shortcuts.register(...)` gated to `sdk.window.getContext().page?.kind === "HTTPHistory"`; it does not need a document-level keydown listener now that the action only depends on page context plus DOM lookup
+  - the toggle cycles the next visible request-alteration option through that combobox rather than targeting a single fixed label
+  - clicking the built-in dropdown changes focus unless a request editor element is explicitly refocused after the option click
   - any future DOM hack here should fail closed if selectors or focus behavior drift
 - Automate copy uses the same request-editor-extension approach as HTTP History and Replay.
 - Replay copy from editor falls back to backend request lookup for host, TLS, and port when the raw request only provides a relative target.
