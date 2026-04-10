@@ -1,5 +1,4 @@
 import type { FrontendSDK } from "@/types";
-import FinalRequestView from "./FinalRequestView.vue";
 
 const styleId = "nkit-http-history-style";
 const httpHistoryCss = `[data-pc-name="splitterpanel"] [data-pc-section="content"] .text-nowrap.truncate.max-w-96 {
@@ -17,13 +16,13 @@ const ensureHttpHistoryStyle = (document: Document) => {
   document.head.appendChild(style);
 };
 
-// TODO work in progress
-// export const registerHttpHistoryFeature = (sdk: FrontendSDK) => {
-//   ensureHttpHistoryStyle(window.document);
-//   sdk.httpHistory.addRequestViewMode({
-//     label: "Final",
-//     view: {
-//       component: FinalRequestView,
-//     },
-//   });
-// };
+export const registerHttpHistoryFeature = (sdk: FrontendSDK) => {
+  ensureHttpHistoryStyle(window.document);
+  // TODO work in progress
+  // sdk.httpHistory.addRequestViewMode({
+  //   label: "Final",
+  //   view: {
+  //     component: FinalRequestView,
+  //   },
+  // });
+};

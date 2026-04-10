@@ -1,6 +1,16 @@
 const chromeUserAgent =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.7680.165 Safari/537.36";
 
+export type ParsedHttpUrl = {
+  host: string;
+  hostname: string;
+  href: string;
+  pathname: string;
+  port: string;
+  protocol: "http:" | "https:";
+  search: string;
+};
+
 export const buildUrl = ({
   host,
   isTls,
@@ -15,8 +25,7 @@ export const buildUrl = ({
   query: string;
 }) => {
   const protocol = isTls ? "https" : "http";
-  const isDefaultPort =
-    (isTls && port === 443) || (!isTls && port === 80);
+  const isDefaultPort = (isTls && port === 443) || (!isTls && port === 80);
   const origin = `${protocol}://${host}${isDefaultPort ? "" : `:${port}`}`;
   return `${origin}${path}${query === "" ? "" : `?${query}`}`;
 };
@@ -47,19 +56,47 @@ export const getHeaderValue = (rawRequest: string, headerName: string) => {
 
 export const getRequestTarget = (rawRequest: string) => {
   const requestLine = rawRequest.split(/\r?\n/, 1)[0];
+  if (requestLine === undefined) {
+    return undefined;
+  }
+
   const match = requestLine.match(/^\S+\s+(\S+)\s+HTTP\/\d+(?:\.\d+)?$/);
   return match?.[1];
 };
 
-export const parseAbsoluteUrl = (target: string) => {
+const parseHttpUrl = (value: string) => {
   try {
-    const url = new URL(target);
-    if (url.protocol === "http:" || url.protocol === "https:") {
-      return url.toString();
+    // eslint-disable-next-line compat/compat
+    const url = new URL(value);
+    const protocol = url.protocol.toLowerCase();
+    if (protocol !== "http:" && protocol !== "https:") {
+      return undefined;
     }
-  } catch {}
 
-  return undefined;
+    if (url.hostname === "") {
+      return undefined;
+    }
+
+    return {
+      host: url.host,
+      hostname: url.hostname,
+      href: url.href,
+      pathname: url.pathname,
+      port: url.port,
+      protocol,
+      search: url.search,
+    } satisfies ParsedHttpUrl;
+  } catch {
+    return undefined;
+  }
+};
+
+export const parseAbsoluteUrl = (target: string) => {
+  if (!/^[A-Za-z][A-Za-z\d+.-]*:\/\//.test(target)) {
+    return undefined;
+  }
+
+  return parseHttpUrl(target);
 };
 
 export const parseHostHeader = (hostHeader: string) => {
@@ -123,30 +160,17 @@ export const normalizeClipboardUrl = (value: string) => {
     ? trimmedValue
     : `https://${trimmedValue}`;
 
-  try {
-    const url = new URL(prefixedValue);
-    if (url.protocol !== "http:" && url.protocol !== "https:") {
-      return undefined;
-    }
-
-    return url;
-  } catch {
-    return undefined;
-  }
+  return parseHttpUrl(prefixedValue);
 };
 
-export const getUrlConnectionInfo = (url: URL) => ({
+export const getUrlConnectionInfo = (url: ParsedHttpUrl) => ({
   host: url.hostname,
   isTLS: url.protocol === "https:",
   port:
-    url.port === ""
-      ? url.protocol === "https:"
-        ? 443
-        : 80
-      : Number(url.port),
+    url.port === "" ? (url.protocol === "https:" ? 443 : 80) : Number(url.port),
 });
 
-export const buildReplayRawRequest = (url: URL) => {
+export const buildReplayRawRequest = (url: ParsedHttpUrl) => {
   const target = `${url.pathname === "" ? "/" : url.pathname}${url.search}`;
   const headers = [
     `GET ${target} HTTP/1.1`,

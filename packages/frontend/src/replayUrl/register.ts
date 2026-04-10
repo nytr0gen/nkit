@@ -1,7 +1,5 @@
 import { keymap } from "@codemirror/view";
 
-import type { FrontendSDK } from "@/types";
-
 import {
   copyReplayUrlFromEditor,
   copyReplayUrlFromRequestContext,
@@ -10,6 +8,8 @@ import {
   isRequestRowContext,
   pasteReplayUrlIntoReplay,
 } from "./actions";
+
+import type { FrontendSDK } from "@/types";
 
 const copyReplayUrlCommandId = "nkit.copy-replay-url";
 const pasteReplayUrlCommandId = "nkit.paste-replay-url";

@@ -4,9 +4,5 @@
 - disable Ctrl+Shift+R for hard reload
 - sitemap - it auto-collapses when sending a request to Replay with the shortcut, so i lose track of where I was
 - sitemap - search would be more useful if it would include path (like searching for .php)
-- nvertor - like hackvertor for `<@uuid> <@url></@url> urld b64 b64d html htmld`
-
-
-[data-pc-name="splitterpanel"] [data-pc-section="content"] .text-nowrap.truncate.max-w-96 {
-    max-width: initial;
-}
+- in HTTP Panes, if I had a Pane name from the plugin, enabled it in the interface, then removed it from the plugin, it stays on the interface with no option to disable it..
+- nvertor - save the pre-converted editor somehow in history. theoretically needs another pane?

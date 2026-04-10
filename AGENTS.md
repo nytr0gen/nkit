@@ -22,6 +22,7 @@ Use this file as the working contract for any agent making changes in this repo.
 - Frontend feature wiring belongs in `packages/frontend/src/index.ts`.
 - HTTP History behavior is organized under `packages/frontend/src/httpHistory`.
 - Replay URL behavior is organized under `packages/frontend/src/replayUrl`.
+- nvertor Replay templating behavior is organized under `packages/frontend/src/nvertor`.
 
 ## Required Workflow
 
@@ -83,6 +84,8 @@ ComponentName/
 - Commands are frontend-only and should be registered through the frontend SDK.
 - Global shortcuts and command palette invocations run with `BaseContext`, not request-specific context.
 - Do not assume a shortcut can access the currently selected request row or request pane unless it is attached to an editor extension that provides editor-local state.
+- The published `@caido/sdk-frontend` root typings may lag behind documented runtime APIs.
+- When that happens, keep the stronger local wrapper in `packages/frontend/src/caido.ts` aligned with the docs/runtime instead of using `any` casts.
 
 ## Backend Rules
 
@@ -140,6 +143,17 @@ ComponentName/
   - lower-case `sec-ch-ua*` headers
   - all other headers kept with normal case
 - If the user changes the intended header template or browser fingerprint, update the template in `packages/frontend/src/replayUrl/utils.ts`.
+- In `packages/frontend/src/replayUrl/utils.ts`, prefer `new URL(...)` with a narrow compat lint suppression when needed; do not switch back to anchor-element URL parsing.
+- nvertor is Replay-only in v1.
+- nvertor keeps `<@...>` tags in the Replay editor and renders the converted output in the custom Replay request view mode labeled `Converted`.
+- Caido does not currently expose a supported pre-send hook for the built-in Replay send action.
+- Because of that, transformed Replay sending must go through the plugin-owned `Send Converted Request` action or the Replay editor `Mod-Enter` keybinding.
+- `Copy Converted Request` is registered as a `RequestContext` menu item but must stay gated to the Replay page through the command `when(...)` handler.
+- The nvertor transform registry lives in `packages/frontend/src/nvertor/render.ts`; add new functions there instead of adding one-off parser branches.
+- `htmld` must stay a pure string/entity decoder in `packages/frontend/src/nvertor/render.ts`; do not reintroduce DOM parsing through `innerHTML` or `DOMParser`.
+- nvertor preview, copy, and send rerender from the current template source each time; do not cache rendered results just to stabilize `uuid` or `ts`.
+- Replay editor text is normalized to `\n`, so nvertor must convert rendered requests back to HTTP `\r\n` before copy/send or Replay history may display the sent request as a single line.
+- nvertor should not rewrite `Content-Length` inside the renderer; rely on `sdk.replay.sendRequest(..., { updateContentLength: true })` for converted sends.
 - For request-row copy, fail closed when multiple rows are selected. Current behavior is “select exactly one request row”.
 
 ## Lint and Safety Notes

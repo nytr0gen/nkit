@@ -1,9 +1,7 @@
 import type { DefineAPI, SDK } from "caido:plugin";
 import type { ID } from "caido:utils";
 
-type Result<T> =
-  | { kind: "Error"; error: string }
-  | { kind: "Ok"; value: T };
+type Result<T> = { kind: "Error"; error: string } | { kind: "Ok"; value: T };
 
 type RequestConnectionInfo = {
   host: string;

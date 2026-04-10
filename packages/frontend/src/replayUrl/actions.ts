@@ -1,5 +1,3 @@
-import type { FrontendSDK } from "@/types";
-
 import {
   buildReplayRawRequest,
   buildUrl,
@@ -11,6 +9,8 @@ import {
   parseAbsoluteUrl,
   parseHostHeader,
 } from "./utils";
+
+import type { FrontendSDK } from "@/types";
 
 export type RequestContext = {
   type: "RequestContext";
@@ -36,13 +36,13 @@ export type RequestRowContext = {
   requests: RequestRow[];
 };
 
-export const isRequestContext = (
-  context: { type: string },
-): context is RequestContext => context.type === "RequestContext";
+export const isRequestContext = (context: {
+  type: string;
+}): context is RequestContext => context.type === "RequestContext";
 
-export const isRequestRowContext = (
-  context: { type: string },
-): context is RequestRowContext => context.type === "RequestRowContext";
+export const isRequestRowContext = (context: {
+  type: string;
+}): context is RequestRowContext => context.type === "RequestRowContext";
 
 const copyText = async (sdk: FrontendSDK, text: string) => {
   try {
@@ -67,12 +67,20 @@ export const copyReplayUrlFromRequestRowContext = async (
 ) => {
   if (context.requests.length !== 1) {
     sdk.window.showToast("Select exactly one request row", {
-      variant: "warn",
+      variant: "warning",
     });
     return;
   }
 
-  const url = buildUrl(context.requests[0]);
+  const [request] = context.requests;
+  if (request === undefined) {
+    sdk.window.showToast("Select exactly one request row", {
+      variant: "warning",
+    });
+    return;
+  }
+
+  const url = buildUrl(request);
   await copyText(sdk, url);
 };
 
@@ -90,14 +98,14 @@ export const copyReplayUrlFromEditor = async (
 
   const absoluteUrl = parseAbsoluteUrl(target);
   if (absoluteUrl !== undefined) {
-    await copyText(sdk, absoluteUrl);
+    await copyText(sdk, absoluteUrl.href);
     return;
   }
 
   const currentSession = sdk.replay.getCurrentSession();
   if (currentSession === undefined) {
     sdk.window.showToast("No Replay session is currently selected", {
-      variant: "warn",
+      variant: "warning",
     });
     return;
   }
@@ -105,7 +113,7 @@ export const copyReplayUrlFromEditor = async (
   const entryId = currentSession.entryIds.at(-1);
   if (entryId === undefined) {
     sdk.window.showToast("The current Replay session has no request entry", {
-      variant: "warn",
+      variant: "warning",
     });
     return;
   }
@@ -151,7 +159,7 @@ export const pasteReplayUrlIntoReplay = async (sdk: FrontendSDK) => {
   const currentSession = sdk.replay.getCurrentSession();
   if (currentSession === undefined) {
     sdk.window.showToast("No Replay session is currently selected", {
-      variant: "warn",
+      variant: "warning",
     });
     return;
   }
