@@ -10,7 +10,7 @@ nytr0gen toolkit for caido.
 - Replay `nvertor` templates such as `<@url>...</@>`, `<@urld>...</@>`, `<@urlall>...</@>`, `<@urlalld>...</@>`, `<@b64>...</@>`, `<@b64d>...</@>`, `<@html>...</@>`, `<@htmld>...</@>`, `<@repeat(3)>...</@>`, and generator tags like `<@uuid>` or `<@uuid/>`, plus `<@ts>` or `<@ts/>`
 - Explicit tag closing also works, like `<@url>...</@url>`
 - A Replay `Converted` request pane that shows the rendered request without altering the editor draft
-- `Send Converted Request` in Replay plus `Copy Converted Request` from the Replay request context menu
+- `Send Converted Request` in Replay plus `Copy Converted Request` and `Copy Converted URL` from the Replay request context menu
 
 ## Shortcuts
 

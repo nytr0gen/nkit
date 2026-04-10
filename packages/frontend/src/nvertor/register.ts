@@ -3,6 +3,7 @@ import { ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import {
   canCopyConvertedRequest,
   copyConvertedRequest,
+  copyConvertedUrl,
   sendConvertedRequest,
 } from "./actions";
 import ConvertedRequestView from "./ConvertedRequestView.vue";
@@ -11,6 +12,7 @@ import { setReplayCurrentSessionId, setReplayDraftRaw } from "./store";
 import { type FrontendSDK, ReplaySlot } from "@/caido";
 
 const copyConvertedRequestCommandId = "nkit.copy-converted-request";
+const copyConvertedUrlCommandId = "nkit.copy-converted-url";
 const sendConvertedRequestCommandId = "nkit.send-converted-request";
 
 const syncReplayDraftFromActiveEditor = (sdk: FrontendSDK) => {
@@ -82,6 +84,21 @@ export const registerNvertorFeature = (sdk: FrontendSDK) => {
     },
   });
 
+  sdk.commands.register(copyConvertedUrlCommandId, {
+    group: "nvertor",
+    name: "Copy Converted URL",
+    run: async (context) => {
+      if (context.type !== "RequestContext") {
+        return;
+      }
+
+      await copyConvertedUrl(sdk, context.request.raw);
+    },
+    when: (context) => {
+      return canCopyConvertedRequest(sdk, context);
+    },
+  });
+
   sdk.commands.register(sendConvertedRequestCommandId, {
     group: "nvertor",
     name: "Send Converted Request",
@@ -98,6 +115,11 @@ export const registerNvertorFeature = (sdk: FrontendSDK) => {
   sdk.menu.registerItem({
     commandId: copyConvertedRequestCommandId,
     leadingIcon: "fas fa-copy",
+    type: "Request",
+  });
+  sdk.menu.registerItem({
+    commandId: copyConvertedUrlCommandId,
+    leadingIcon: "fas fa-link",
     type: "Request",
   });
 

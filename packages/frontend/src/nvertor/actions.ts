@@ -2,6 +2,7 @@ import { formatRenderError, renderNvertorTemplate } from "./render";
 import { getReplayDraftRaw } from "./store";
 
 import type { FrontendSDK, ReplayConnectionInfo } from "@/caido";
+import { getReplayUrlFromRawRequest } from "@/replayUrl/actions";
 import {
   getHeaderValue,
   getRequestTarget,
@@ -18,14 +19,21 @@ const normalizeHttpLineEndings = (rawRequest: string) => {
   return rawRequest.replaceAll(/\r?\n/g, "\r\n");
 };
 
-const copyText = async (sdk: FrontendSDK, text: string) => {
+const copyText = async (
+  sdk: FrontendSDK,
+  text: string,
+  messages: {
+    failure: string;
+    success: string;
+  },
+) => {
   try {
     await navigator.clipboard.writeText(text);
-    sdk.window.showToast("Converted request copied", {
+    sdk.window.showToast(messages.success, {
       variant: "success",
     });
   } catch {
-    sdk.window.showToast("Failed to copy the converted request", {
+    sdk.window.showToast(messages.failure, {
       variant: "error",
     });
   }
@@ -228,7 +236,33 @@ export const copyConvertedRequest = async (
     return;
   }
 
-  await copyText(sdk, convertedRequest);
+  await copyText(sdk, convertedRequest, {
+    failure: "Failed to copy the converted request",
+    success: "Converted request copied",
+  });
+};
+
+export const copyConvertedUrl = async (
+  sdk: FrontendSDK,
+  rawRequest: string,
+) => {
+  const convertedRequest = renderReplayRequest(sdk, rawRequest);
+  if (convertedRequest === undefined) {
+    return;
+  }
+
+  const result = await getReplayUrlFromRawRequest(sdk, convertedRequest);
+  if (result.kind === "Error") {
+    sdk.window.showToast(result.error, {
+      variant: result.variant,
+    });
+    return;
+  }
+
+  await copyText(sdk, result.value, {
+    failure: "Failed to copy the converted URL",
+    success: "Converted URL copied",
+  });
 };
 
 export const sendConvertedRequest = async (

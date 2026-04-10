@@ -12,6 +12,10 @@ import {
 
 import type { FrontendSDK } from "@/types";
 
+type Result<T> =
+  | { kind: "Error"; error: string; variant: "error" | "warning" }
+  | { kind: "Ok"; value: T };
+
 export type RequestContext = {
   type: "RequestContext";
   request: {
@@ -53,6 +57,95 @@ const copyText = async (sdk: FrontendSDK, text: string) => {
   }
 };
 
+export const getReplayUrlFromRawRequest = async (
+  sdk: FrontendSDK,
+  rawRequest: string,
+): Promise<Result<string>> => {
+  const target = getRequestTarget(rawRequest);
+  if (target === undefined) {
+    return {
+      kind: "Error",
+      error: "Failed to parse the Replay request",
+      variant: "error",
+    };
+  }
+
+  const absoluteUrl = parseAbsoluteUrl(target);
+  if (absoluteUrl !== undefined) {
+    return {
+      kind: "Ok",
+      value: absoluteUrl.href,
+    };
+  }
+
+  const currentSession = sdk.replay.getCurrentSession();
+  if (currentSession === undefined) {
+    return {
+      kind: "Error",
+      error: "No Replay session is currently selected",
+      variant: "warning",
+    };
+  }
+
+  const entryId = currentSession.entryIds.at(-1);
+  if (entryId === undefined) {
+    return {
+      kind: "Error",
+      error: "The current Replay session has no request entry",
+      variant: "warning",
+    };
+  }
+
+  const entry = sdk.replay.getEntry(entryId);
+  const hostHeader = getHeaderValue(rawRequest, "host");
+  const hostFromHeader =
+    hostHeader === undefined ? undefined : parseHostHeader(hostHeader);
+  const entryConnection = entry.connection;
+  if (entryConnection !== undefined) {
+    return {
+      kind: "Ok",
+      value: buildUrlFromTarget({
+        host: hostFromHeader?.host ?? entryConnection.host,
+        isTls: entryConnection.isTLS,
+        port: hostFromHeader?.port ?? entryConnection.port,
+        target,
+      }),
+    };
+  }
+
+  const requestId = entry.request?.id ?? entry.requestId;
+  if (requestId !== undefined) {
+    const result = await sdk.backend.getRequestConnectionInfo(requestId);
+    if (result.kind === "Error") {
+      return {
+        kind: "Error",
+        error: result.error,
+        variant: "error",
+      };
+    }
+
+    return {
+      kind: "Ok",
+      value: buildUrlFromTarget({
+        host: hostFromHeader?.host ?? result.value.host,
+        isTls: result.value.isTls,
+        port: hostFromHeader?.port ?? result.value.port,
+        target,
+      }),
+    };
+  }
+
+  return {
+    kind: "Ok",
+    value: buildUrlFromTarget({
+      host: hostFromHeader?.host ?? "",
+      isTls: true,
+      port: hostFromHeader?.port ?? 443,
+      target,
+    }),
+  };
+};
+
 export const copyReplayUrlFromRequestContext = async (
   sdk: FrontendSDK,
   context: RequestContext,
@@ -88,80 +181,15 @@ export const copyReplayUrlFromEditor = async (
   sdk: FrontendSDK,
   rawRequest: string,
 ) => {
-  const target = getRequestTarget(rawRequest);
-  if (target === undefined) {
-    sdk.window.showToast("Failed to parse the Replay request", {
-      variant: "error",
+  const result = await getReplayUrlFromRawRequest(sdk, rawRequest);
+  if (result.kind === "Error") {
+    sdk.window.showToast(result.error, {
+      variant: result.variant,
     });
     return;
   }
 
-  const absoluteUrl = parseAbsoluteUrl(target);
-  if (absoluteUrl !== undefined) {
-    await copyText(sdk, absoluteUrl.href);
-    return;
-  }
-
-  const currentSession = sdk.replay.getCurrentSession();
-  if (currentSession === undefined) {
-    sdk.window.showToast("No Replay session is currently selected", {
-      variant: "warning",
-    });
-    return;
-  }
-
-  const entryId = currentSession.entryIds.at(-1);
-  if (entryId === undefined) {
-    sdk.window.showToast("The current Replay session has no request entry", {
-      variant: "warning",
-    });
-    return;
-  }
-
-  const entry = sdk.replay.getEntry(entryId);
-  const hostHeader = getHeaderValue(rawRequest, "host");
-  const hostFromHeader =
-    hostHeader === undefined ? undefined : parseHostHeader(hostHeader);
-  const entryConnection = entry.connection;
-  if (entryConnection !== undefined) {
-    const url = buildUrlFromTarget({
-      host: hostFromHeader?.host ?? entryConnection.host,
-      isTls: entryConnection.isTLS,
-      port: hostFromHeader?.port ?? entryConnection.port,
-      target,
-    });
-
-    await copyText(sdk, url);
-    return;
-  }
-
-  const requestId = entry.request?.id ?? entry.requestId;
-  if (requestId !== undefined) {
-    const result = await sdk.backend.getRequestConnectionInfo(requestId);
-    if (result.kind === "Error") {
-      sdk.window.showToast(result.error, { variant: "error" });
-      return;
-    }
-
-    const url = buildUrlFromTarget({
-      host: hostFromHeader?.host ?? result.value.host,
-      isTls: result.value.isTls,
-      port: hostFromHeader?.port ?? result.value.port,
-      target,
-    });
-
-    await copyText(sdk, url);
-    return;
-  }
-
-  const url = buildUrlFromTarget({
-    host: hostFromHeader?.host ?? "",
-    isTls: true,
-    port: hostFromHeader?.port ?? 443,
-    target,
-  });
-
-  await copyText(sdk, url);
+  await copyText(sdk, result.value);
 };
 
 export const pasteReplayUrlIntoReplay = async (sdk: FrontendSDK) => {
