@@ -1,4 +1,4 @@
-import { keymap, ViewPlugin, type ViewUpdate } from "@codemirror/view";
+import { ViewPlugin, type ViewUpdate } from "@codemirror/view";
 
 import {
   canCopyConvertedRequest,
@@ -92,6 +92,8 @@ export const registerNvertorFeature = (sdk: FrontendSDK) => {
       return sdk.window.getContext().page?.kind === "Replay";
     },
   });
+  sdk.shortcuts.register(sendConvertedRequestCommandId, ["Control", "Enter"]);
+  sdk.shortcuts.register(sendConvertedRequestCommandId, ["Meta", "Enter"]);
 
   sdk.menu.registerItem({
     commandId: copyConvertedRequestCommandId,
@@ -113,16 +115,4 @@ export const registerNvertorFeature = (sdk: FrontendSDK) => {
   });
 
   sdk.replay.addRequestEditorExtension(buildReplayDraftTracker(sdk));
-  sdk.replay.addRequestEditorExtension(
-    keymap.of([
-      {
-        key: "Mod-Enter",
-        preventDefault: true,
-        run: (view) => {
-          void sendConvertedRequest(sdk, view.state.doc.toString());
-          return true;
-        },
-      },
-    ]),
-  );
 };

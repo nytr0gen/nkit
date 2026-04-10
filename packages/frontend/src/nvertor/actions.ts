@@ -37,13 +37,11 @@ const isReplayPage = (sdk: FrontendSDK) => {
 
 const getCurrentReplayRawRequest = (sdk: FrontendSDK) => {
   const currentSession = sdk.replay.getCurrentSession();
-  if (currentSession === undefined) {
-    return undefined;
-  }
-
-  const trackedRawRequest = getReplayDraftRaw(currentSession.id);
-  if (trackedRawRequest !== undefined) {
-    return trackedRawRequest;
+  if (currentSession !== undefined) {
+    const trackedRawRequest = getReplayDraftRaw(currentSession.id);
+    if (trackedRawRequest !== undefined) {
+      return trackedRawRequest;
+    }
   }
 
   if (!isReplayPage(sdk)) {
@@ -82,28 +80,60 @@ const getReplayConnectionInfo = async (
   }
 
   const currentSession = sdk.replay.getCurrentSession();
-  if (currentSession === undefined) {
-    return {
-      kind: "Error",
-      error: "No Replay session is currently selected",
-    };
-  }
-
-  const entryId = currentSession.entryIds.at(-1);
+  const entryId = currentSession?.entryIds.at(-1);
   if (entryId === undefined) {
+    const host = parseHostHeader(hostHeader);
+    if (host.port !== undefined) {
+      return {
+        kind: "Ok",
+        value: {
+          host: host.host,
+          isTLS: host.port === 443,
+          port: host.port,
+        },
+      };
+    }
+
     return {
-      kind: "Error",
-      error:
-        "The current Replay session has no request entry to infer protocol from",
+      kind: "Ok",
+      value: {
+        host: host.host,
+        isTLS: true,
+        port: 443,
+      },
     };
   }
 
   const entry = sdk.replay.getEntry(entryId);
-  const backendResult = await sdk.backend.getRequestConnectionInfo(
-    entry.requestId,
-  );
-  if (backendResult.kind === "Error") {
-    return backendResult;
+  if (entry.connection !== undefined) {
+    const host = parseHostHeader(hostHeader);
+    return {
+      kind: "Ok",
+      value: {
+        host: host.host,
+        isTLS: entry.connection.isTLS,
+        port: host.port ?? entry.connection.port,
+        SNI: entry.connection.SNI,
+      },
+    };
+  }
+
+  const requestId = entry.request?.id ?? entry.requestId;
+  if (requestId !== undefined) {
+    const backendResult = await sdk.backend.getRequestConnectionInfo(requestId);
+    if (backendResult.kind === "Error") {
+      return backendResult;
+    }
+
+    const host = parseHostHeader(hostHeader);
+    return {
+      kind: "Ok",
+      value: {
+        host: host.host,
+        isTLS: backendResult.value.isTls,
+        port: host.port ?? backendResult.value.port,
+      },
+    };
   }
 
   const host = parseHostHeader(hostHeader);
@@ -111,10 +141,63 @@ const getReplayConnectionInfo = async (
     kind: "Ok",
     value: {
       host: host.host,
-      isTLS: backendResult.value.isTls,
-      port: host.port ?? backendResult.value.port,
+      isTLS: true,
+      port: host.port ?? 443,
     },
   };
+};
+
+const waitForReplaySessionId = (sdk: FrontendSDK) => {
+  // eslint-disable-next-line compat/compat
+  return new Promise<string | undefined>((resolve) => {
+    const listener = sdk.replay.onCurrentSessionChange((event) => {
+      if (event.sessionId === undefined) {
+        return;
+      }
+
+      listener.stop();
+      resolve(event.sessionId);
+    });
+
+    window.setTimeout(() => {
+      listener.stop();
+      resolve(undefined);
+    }, 1000);
+  });
+};
+
+const ensureReplaySessionId = async (
+  sdk: FrontendSDK,
+  convertedRequest: string,
+  connectionInfo: ReplayConnectionInfo,
+) => {
+  const currentSession = sdk.replay.getCurrentSession();
+  if (currentSession !== undefined) {
+    return currentSession.id;
+  }
+
+  const sessionIdsBefore = new Set(
+    sdk.replay.getSessions().map((session) => session.id),
+  );
+  const nextSessionId = waitForReplaySessionId(sdk);
+
+  await sdk.replay.createSession({
+    connectionInfo,
+    raw: convertedRequest,
+    type: "Raw",
+  });
+
+  const nextCurrentSession = sdk.replay.getCurrentSession();
+  if (nextCurrentSession !== undefined) {
+    return nextCurrentSession.id;
+  }
+
+  return (
+    sdk.replay
+      .getSessions()
+      .find((session) => !sessionIdsBefore.has(session.id))?.id ??
+    (await nextSessionId)
+  );
 };
 
 const renderReplayRequest = (sdk: FrontendSDK, rawRequest: string) => {
@@ -159,14 +242,6 @@ export const sendConvertedRequest = async (
     return;
   }
 
-  const currentSession = sdk.replay.getCurrentSession();
-  if (currentSession === undefined) {
-    sdk.window.showToast("No Replay session is currently selected", {
-      variant: "warning",
-    });
-    return;
-  }
-
   const convertedRequest = renderReplayRequest(sdk, rawRequest);
   if (convertedRequest === undefined) {
     return;
@@ -180,8 +255,20 @@ export const sendConvertedRequest = async (
     return;
   }
 
+  const sessionId = await ensureReplaySessionId(
+    sdk,
+    convertedRequest,
+    connectionInfo.value,
+  );
+  if (sessionId === undefined) {
+    sdk.window.showToast("Failed to create a Replay session", {
+      variant: "error",
+    });
+    return;
+  }
+
   try {
-    await sdk.replay.sendRequest(currentSession.id, {
+    await sdk.replay.sendRequest(sessionId, {
       connectionInfo: connectionInfo.value,
       overwriteDraft: false,
       raw: convertedRequest,

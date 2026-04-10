@@ -119,19 +119,45 @@ export const copyReplayUrlFromEditor = async (
   }
 
   const entry = sdk.replay.getEntry(entryId);
-  const result = await sdk.backend.getRequestConnectionInfo(entry.requestId);
-  if (result.kind === "Error") {
-    sdk.window.showToast(result.error, { variant: "error" });
-    return;
-  }
-
   const hostHeader = getHeaderValue(rawRequest, "host");
   const hostFromHeader =
     hostHeader === undefined ? undefined : parseHostHeader(hostHeader);
+  const entryConnection = entry.connection;
+  if (entryConnection !== undefined) {
+    const url = buildUrlFromTarget({
+      host: hostFromHeader?.host ?? entryConnection.host,
+      isTls: entryConnection.isTLS,
+      port: hostFromHeader?.port ?? entryConnection.port,
+      target,
+    });
+
+    await copyText(sdk, url);
+    return;
+  }
+
+  const requestId = entry.request?.id ?? entry.requestId;
+  if (requestId !== undefined) {
+    const result = await sdk.backend.getRequestConnectionInfo(requestId);
+    if (result.kind === "Error") {
+      sdk.window.showToast(result.error, { variant: "error" });
+      return;
+    }
+
+    const url = buildUrlFromTarget({
+      host: hostFromHeader?.host ?? result.value.host,
+      isTls: result.value.isTls,
+      port: hostFromHeader?.port ?? result.value.port,
+      target,
+    });
+
+    await copyText(sdk, url);
+    return;
+  }
+
   const url = buildUrlFromTarget({
-    host: hostFromHeader?.host ?? result.value.host,
-    isTls: result.value.isTls,
-    port: hostFromHeader?.port ?? result.value.port,
+    host: hostFromHeader?.host ?? "",
+    isTls: true,
+    port: hostFromHeader?.port ?? 443,
     target,
   });
 

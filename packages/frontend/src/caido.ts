@@ -48,8 +48,12 @@ type ReplaySlotContent =
   | ReplaySlotCustom;
 
 type ReplayEntry = {
+  connection?: ReplayConnectionInfo;
   id: ID;
-  requestId: ID;
+  request?: {
+    id: ID;
+  };
+  requestId?: ID;
   sessionId: ID;
 };
 
@@ -66,6 +70,17 @@ type ReplayConnectionInfo = {
   isTLS: boolean;
   port: number;
 };
+
+type ReplayRequestSource =
+  | {
+      id: ID;
+      type: "ID";
+    }
+  | {
+      connectionInfo: ReplayConnectionInfo;
+      raw: string;
+      type: "Raw";
+    };
 
 type SendRequestOptions = {
   background?: boolean;
@@ -106,6 +121,10 @@ export type FrontendSDK = Omit<
       slot: (typeof ReplaySlot)[keyof typeof ReplaySlot],
       content: ReplaySlotContent,
     ) => void;
+    createSession: (
+      source: ReplayRequestSource,
+      collectionId?: ID,
+    ) => Promise<void>;
     getCurrentSession: () => ReplaySession | undefined;
     getEntry: (entryId: ID) => ReplayEntry;
     onCurrentSessionChange: (

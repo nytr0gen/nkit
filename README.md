@@ -16,4 +16,4 @@ nytr0gen toolkit for caido.
 
 - `Ctrl/Cmd+Shift+C`: Copy URL from Replay, HTTP History, and Automate request editors
 - `Ctrl/Cmd+Shift+V`: Paste URL into Replay
-- `Ctrl/Cmd+Enter`: Send Converted Request from the Replay editor
+- `Ctrl/Cmd+Enter`: Send Converted Request from Replay using the current tracked request draft

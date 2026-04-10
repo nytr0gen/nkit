@@ -147,7 +147,7 @@ ComponentName/
 - nvertor is Replay-only in v1.
 - nvertor keeps `<@...>` tags in the Replay editor and renders the converted output in the custom Replay request view mode labeled `Converted`.
 - Caido does not currently expose a supported pre-send hook for the built-in Replay send action.
-- Because of that, transformed Replay sending must go through the plugin-owned `Send Converted Request` action or the Replay editor `Mod-Enter` keybinding.
+- Because of that, transformed Replay sending must go through the plugin-owned `Send Converted Request` action or the global Replay `Ctrl/Cmd+Enter` shortcut.
 - `Copy Converted Request` is registered as a `RequestContext` menu item but must stay gated to the Replay page through the command `when(...)` handler.
 - The nvertor transform registry lives in `packages/frontend/src/nvertor/render.ts`; add new functions there instead of adding one-off parser branches.
 - nvertor generator tags such as `uuid` and `ts` should accept both `<@tag>` and `<@tag/>`; do not require closing tags for generators.
@@ -157,6 +157,12 @@ ComponentName/
 - nvertor preview, copy, and send rerender from the current template source each time; do not cache rendered results just to stabilize `uuid` or `ts`.
 - Replay editor text is normalized to `\n`, so nvertor must convert rendered requests back to HTTP `\r\n` before copy/send or Replay history may display the sent request as a single line.
 - nvertor should not rewrite `Content-Length` inside the renderer; rely on `sdk.replay.sendRequest(..., { updateContentLength: true })` for converted sends.
+- The global Replay `Ctrl/Cmd+Enter` shortcut runs through command `BaseContext`, so it must use the tracked current Replay draft from `packages/frontend/src/nvertor/store.ts` rather than assuming request-pane-local editor access.
+- Do not bind `Ctrl/Cmd+Enter` both globally and as a Replay request-editor keymap; that causes duplicate sends when the request editor has focus.
+- For a brand-new Replay draft with no prior session entry, nvertor falls back to the request Host header for connection info; if no port is present, it currently defaults first-send converted Replay to HTTPS on port 443.
+- `sdk.replay.createSession(...)` is not reliably followed by an immediately readable current session; when bootstrapping a first Replay send, wait for `onCurrentSessionChange(...)` before assuming the new session is selected.
+- Replay entries may not have a backing request object, so do not assume a Replay entry always exposes a request id.
+- For Replay-originated connection inference, prefer `entry.connection` and only use request `Host` header overrides when present; do not round-trip through backend request lookup just to recover host/TLS/port.
 - For request-row copy, fail closed when multiple rows are selected. Current behavior is “select exactly one request row”.
 
 ## Lint and Safety Notes
