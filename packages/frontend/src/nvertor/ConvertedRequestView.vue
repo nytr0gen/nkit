@@ -11,15 +11,23 @@ import {
 import RequestViewer from "@/requestViewer/RequestViewer.vue";
 
 const props = defineProps<{
-  request: {
+  request?: {
     raw: string;
   };
 }>();
 
+const baseRawRequest = computed(() => {
+  return props.request?.raw ?? "";
+});
+
 watch(
-  () => [currentReplaySessionId.value, props.request.raw] as const,
+  () => [currentReplaySessionId.value, baseRawRequest.value] as const,
   ([sessionId, rawRequest]) => {
-    if (sessionId === undefined || getReplayDraftRaw(sessionId) !== undefined) {
+    if (
+      sessionId === undefined ||
+      rawRequest.length === 0 ||
+      getReplayDraftRaw(sessionId) !== undefined
+    ) {
       return;
     }
 
@@ -33,10 +41,10 @@ watch(
 const currentRawRequest = computed(() => {
   const sessionId = currentReplaySessionId.value;
   if (sessionId === undefined) {
-    return props.request.raw;
+    return baseRawRequest.value;
   }
 
-  return getReplayDraftRaw(sessionId) ?? props.request.raw;
+  return getReplayDraftRaw(sessionId) ?? baseRawRequest.value;
 });
 
 const renderResult = computed(() => {

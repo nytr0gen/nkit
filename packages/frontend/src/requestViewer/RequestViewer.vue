@@ -111,6 +111,7 @@ const viewerTheme = EditorView.theme({
     height: "100%",
     backgroundColor: "transparent",
     color: "#d8dee9",
+    fontSize: "12.6px",
   },
   "&.cm-focused": {
     outline: "none",
@@ -182,6 +183,14 @@ const createEditorView = () => {
         EditorState.readOnly.of(true),
         EditorView.editable.of(false),
         EditorView.lineWrapping,
+        EditorView.contentAttributes.of({
+          "aria-label": "HTTP Request Editor",
+          "data-language": "http-request",
+          autocapitalize: "off",
+          autocorrect: "off",
+          spellcheck: "false",
+          translate: "no",
+        }),
         lineNumbers(),
         highlightField,
         viewerTheme,
