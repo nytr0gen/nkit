@@ -11,6 +11,7 @@ nytr0gen toolkit for caido.
 - Explicit tag closing also works, like `<@url>...</@url>`
 - A Replay `Converted` request pane that shows the rendered request without altering the editor draft
 - `Send Converted Request` in Replay plus `Copy Converted Request` and `Copy Converted URL` from the Replay request context menu
+- A Match & Replace `Duplicate Rule` button that clones the current rule and appends the next trailing number to the name
 - Cycle the HTTP History `Request alteration` dropdown with `Ctrl/Cmd+Shift+E`, including when only the row list is focused. DOM-Hacky implementation
 
 ## Shortcuts

@@ -3,6 +3,7 @@ import PrimeVue from "primevue/config";
 import { createApp } from "vue";
 
 import { registerHttpHistoryFeature } from "./httpHistory";
+import { registerMatchReplaceFeature } from "./matchReplace";
 import { registerNvertorFeature } from "./nvertor";
 import { SDKPlugin } from "./plugins/sdk";
 import { registerReplayUrlFeature } from "./replayUrl";
@@ -36,6 +37,7 @@ export const init = (sdk: FrontendSDK) => {
 
   sdk.sidebar.registerItem("nkit", "/nkit");
   registerHttpHistoryFeature(sdk);
+  registerMatchReplaceFeature(sdk);
   registerNvertorFeature(sdk);
   registerReplayUrlFeature(sdk);
 };

@@ -1,4 +1,5 @@
 import type { Caido } from "@caido/sdk-frontend";
+import type { HTTPQL } from "@caido/sdk-frontend/src/types/utils";
 import type { Extension } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import type { API } from "backend";
@@ -98,6 +99,49 @@ type GlobalContext = {
   };
 };
 
+type MatchReplaceSource =
+  | "AUTOMATE"
+  | "INTERCEPT"
+  | "PLUGIN"
+  | "REPLAY"
+  | "SAMPLE"
+  | "WORKFLOW";
+
+type MatchReplaceSection = unknown;
+
+type MatchReplaceRule = {
+  collectionId: ID;
+  id: ID;
+  isEnabled: boolean;
+  name: string;
+  query: HTTPQL;
+  section: MatchReplaceSection;
+  sources: MatchReplaceSource[];
+};
+
+type MatchReplaceSlotButton = {
+  type: "Button";
+  icon?: string;
+  label?: string;
+  onClick: () => void | Promise<void>;
+};
+
+type MatchReplaceSlotCommand = {
+  commandId: string;
+  icon?: string;
+  type: "Command";
+};
+
+type MatchReplaceSlotCustom = {
+  definition: Component;
+  type: "Custom";
+};
+
+type MatchReplaceSlotContent =
+  | MatchReplaceSlotButton
+  | MatchReplaceSlotCommand
+  | MatchReplaceSlotCustom;
+
 type ActiveEditor = {
   getEditorView: () => EditorView;
 };
@@ -108,9 +152,14 @@ export const ReplaySlot = {
   Topbar: "topbar",
 } as const;
 
+export const MatchReplaceSlot = {
+  CreateHeader: "create-header",
+  UpdateHeader: "update-header",
+} as const;
+
 export type FrontendSDK = Omit<
   BaseFrontendSDK,
-  "httpHistory" | "replay" | "window"
+  "httpHistory" | "matchReplace" | "replay" | "window"
 > & {
   automate: {
     addRequestEditorExtension: (extension: Extension) => void;
@@ -118,6 +167,33 @@ export type FrontendSDK = Omit<
   httpHistory: BaseFrontendSDK["httpHistory"] & {
     addRequestEditorExtension: (extension: Extension) => void;
     addRequestViewMode: (options: RequestViewModeOptions) => void;
+  };
+  matchReplace: Omit<
+    BaseFrontendSDK["matchReplace"],
+    | "createRule"
+    | "getCurrentRule"
+    | "getRules"
+    | "onCurrentRuleChange"
+    | "toggleRule"
+  > & {
+    addToSlot: (
+      slot: (typeof MatchReplaceSlot)[keyof typeof MatchReplaceSlot],
+      content: MatchReplaceSlotContent,
+    ) => void;
+    createRule: (options: {
+      collectionId: ID;
+      name: string;
+      query: HTTPQL;
+      section: MatchReplaceSection;
+      sources: MatchReplaceSource[];
+    }) => Promise<MatchReplaceRule>;
+    getCurrentRule: () => MatchReplaceRule | undefined;
+    getRules: () => MatchReplaceRule[];
+    onCurrentRuleChange: (
+      callback: (event: { ruleId: ID | undefined }) => void,
+    ) => ListenerHandle;
+    selectRule: (id: ID | undefined) => void;
+    toggleRule: (id: ID, enabled: boolean) => Promise<void>;
   };
   replay: BaseFrontendSDK["replay"] & {
     addRequestEditorExtension: (extension: Extension) => void;
@@ -146,4 +222,11 @@ export type FrontendSDK = Omit<
   };
 };
 
-export type { GlobalContext, ReplayConnectionInfo, ReplayEntry, ReplaySession };
+export type {
+  GlobalContext,
+  MatchReplaceRule,
+  MatchReplaceSource,
+  ReplayConnectionInfo,
+  ReplayEntry,
+  ReplaySession,
+};

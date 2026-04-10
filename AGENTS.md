@@ -86,6 +86,7 @@ ComponentName/
 - Do not assume a shortcut can access the currently selected request row or request pane unless it is attached to an editor extension that provides editor-local state.
 - The published `@caido/sdk-frontend` root typings may lag behind documented runtime APIs.
 - When that happens, keep the stronger local wrapper in `packages/frontend/src/caido.ts` aligned with the docs/runtime instead of using `any` casts.
+- Match and Replace is one current example of that lag: the documented/runtime `addToSlot(...)`, `getCurrentRule()`, `onCurrentRuleChange(...)`, `toggleRule(...)`, and slot constants may not all exist in the published package typings, so keep the local wrapper aligned there too.
 
 ## Backend Rules
 
@@ -145,6 +146,8 @@ ComponentName/
 - If the user changes the intended header template or browser fingerprint, update the template in `packages/frontend/src/replayUrl/utils.ts`.
 - In `packages/frontend/src/replayUrl/utils.ts`, prefer `new URL(...)` with a narrow compat lint suppression when needed; do not switch back to anchor-element URL parsing.
 - nvertor is Replay-only in v1.
+- Match and Replace rule duplication is implemented as a documented `MatchReplaceSlot.UpdateHeader` button, not a DOM hack or context-menu hack.
+- Duplicate rule naming should stay collection-local and use the next trailing numeric suffix: `Rule`, `Rule 2`, `Rule 3`, ...
 - nvertor keeps `<@...>` tags in the Replay editor and renders the converted output in the custom Replay request view mode labeled `Converted`.
 - Caido does not currently expose a supported pre-send hook for the built-in Replay send action.
 - Because of that, transformed Replay sending must go through the plugin-owned `Send Converted Request` action or the global Replay `Ctrl/Cmd+Enter` shortcut.
