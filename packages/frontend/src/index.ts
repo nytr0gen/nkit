@@ -2,6 +2,7 @@ import { Classic } from "@caido/primevue";
 import PrimeVue from "primevue/config";
 import { createApp } from "vue";
 
+import { registerHttpHistoryFeature } from "./httpHistory";
 import { SDKPlugin } from "./plugins/sdk";
 import { registerReplayUrlFeature } from "./replayUrl";
 import "./styles/index.css";
@@ -33,5 +34,6 @@ export const init = (sdk: FrontendSDK) => {
   });
 
   sdk.sidebar.registerItem("nkit", "/nkit");
+  registerHttpHistoryFeature(sdk);
   registerReplayUrlFeature(sdk);
 };

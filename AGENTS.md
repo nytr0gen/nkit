@@ -20,6 +20,7 @@ Use this file as the working contract for any agent making changes in this repo.
 - Preserve the current plugin mounting pattern in `packages/frontend/src/index.ts`, including the prefixed root element used to avoid style collisions.
 - The current plugin identity is `nkit`.
 - Frontend feature wiring belongs in `packages/frontend/src/index.ts`.
+- HTTP History behavior is organized under `packages/frontend/src/httpHistory`.
 - Replay URL behavior is organized under `packages/frontend/src/replayUrl`.
 
 ## Required Workflow
@@ -110,6 +111,20 @@ ComponentName/
   - editor-local keybindings in Replay, HTTP History, and Automate request editors
 - `RequestRowContext` is reliable for right-click row actions, but not for global shortcuts.
 - HTTP History row selection alone is not enough for keyboard copy. The supported keyboard path is the readonly request editor that opens when a row is clicked.
+- Caido does not currently expose a supported API to change the default built-in HTTP History request tab from `Original Request` to another built-in variant.
+- The current HTTP History customization is a supported custom request view mode labeled `Final`.
+- Caido's `sdk.ui.httpRequestEditor()` is not a reliable generic "load arbitrary raw request text into a custom pane" API.
+- The `Final` view therefore uses a self-owned read-only CodeMirror viewer with lightweight HTTP highlighting instead of trying to embed Caido's built-in request editor.
+- Imported frontend CSS is prefix-wrapped under `#plugin--nkit` by the build config.
+- That means imported CSS will not affect Caido-hosted panes outside the plugin root, such as HTTP History view modes rendered in core UI containers.
+- For those cases, inject a guarded global `<style>` tag at runtime instead of relying on a normal imported stylesheet.
+- Useful DOM-hack learnings from the reverted HTTP History tab experiment:
+  - the request alteration control is a PrimeVue `Select`, not a native `<select>`
+  - the stable DOM entry point was the combobox with `aria-label="Request alteration"`
+  - the overlay list was linked through `aria-controls`
+  - bounded frame-based waits worked better than fixed `setTimeout` sleeps
+  - clicking the built-in dropdown changed focus in undesirable ways
+  - any future DOM hack here should fail closed if selectors or focus behavior drift
 - Automate copy uses the same request-editor-extension approach as HTTP History and Replay.
 - Replay copy from editor falls back to backend request lookup for host, TLS, and port when the raw request only provides a relative target.
 - Replay paste is intentionally side-effecting:
@@ -139,6 +154,7 @@ ComponentName/
 - The repo is no longer just the untouched template.
 - Current notable files:
   - frontend bootstrap at `packages/frontend/src/index.ts`
+  - HTTP History feature at `packages/frontend/src/httpHistory`
   - replay URL feature at `packages/frontend/src/replayUrl`
   - backend API registration at `packages/backend/src/index.ts`
 - Keep new work aligned with this split unless the user requests a broader refactor.

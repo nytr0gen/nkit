@@ -119,7 +119,7 @@ export const normalizeClipboardUrl = (value: string) => {
     return undefined;
   }
 
-  const prefixedValue = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(trimmedValue)
+  const prefixedValue = /^https?:\/\//.test(trimmedValue)
     ? trimmedValue
     : `https://${trimmedValue}`;
 

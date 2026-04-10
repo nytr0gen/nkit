@@ -1,0 +1,1 @@
+export { registerHttpHistoryFeature } from "./register";
