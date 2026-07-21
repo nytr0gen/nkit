@@ -124,6 +124,7 @@ ComponentName/
 - Imported frontend CSS is prefix-wrapped under `#plugin--nkit` by the build config.
 - That means imported CSS will not affect Caido-hosted panes outside the plugin root, such as HTTP History view modes rendered in core UI containers.
 - For those cases, inject a guarded global `<style>` tag at runtime instead of relying on a normal imported stylesheet.
+- The Replay session-tab `HTTP` tag is hidden by guarded global CSS in `packages/frontend/src/replayUrl/register.ts`. Its selector depends on Caido's current tab DOM structure; if Replay tab names disappear after a Caido update, inspect or remove this rule first.
 - Useful DOM-hack learnings from the reverted HTTP History tab experiment:
   - the request alteration control is a PrimeVue `Select`, not a native `<select>`
   - the stable DOM entry point was the combobox with `aria-label="Request alteration"`

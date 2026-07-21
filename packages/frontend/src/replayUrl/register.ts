@@ -13,8 +13,25 @@ import type { FrontendSDK } from "@/types";
 
 const copyReplayUrlCommandId = "nkit.copy-replay-url";
 const pasteReplayUrlCommandId = "nkit.paste-replay-url";
+const styleId = "nkit-replay-style";
+const replayCss = `[data-session-id] > [data-pc-name="buttongroup"] > button:first-child > div:first-of-type {
+  display: none;
+}`;
+
+const ensureReplayStyle = (document: Document) => {
+  if (document.getElementById(styleId) !== null) {
+    return;
+  }
+
+  const style = document.createElement("style");
+  style.id = styleId;
+  style.textContent = replayCss;
+  document.head.appendChild(style);
+};
 
 export const registerReplayUrlFeature = (sdk: FrontendSDK) => {
+  ensureReplayStyle(window.document);
+
   sdk.commands.register(copyReplayUrlCommandId, {
     name: "Copy URL",
     group: "nkit",

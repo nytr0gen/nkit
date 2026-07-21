@@ -11,6 +11,7 @@ nytr0gen toolkit for caido.
 - Explicit tag closing also works, like `<@url>...</@url>`
 - A Replay `Converted` request pane that shows the rendered request without altering the editor draft
 - Native Replay sending through the packaged `nvertor Convert` workflow, plus `Copy Converted Request` and `Copy Converted URL` from the Replay request context menu
+- Hide the `HTTP` tag in Replay session tabs to leave more room for session names. DOM-hacky implementation
 - A Match & Replace `Duplicate Rule` button that clones the current rule and appends the next trailing number to the name
 - Cycle the HTTP History `Request alteration` dropdown with `Ctrl/Cmd+Shift+E`, including when only the row list is focused. DOM-Hacky implementation
 
@@ -19,6 +20,10 @@ nytr0gen toolkit for caido.
 - `Ctrl/Cmd+Shift+C`: Copy URL from Replay, HTTP History, Automate, Findings, Sitemap, and Search request editors
 - `Ctrl/Cmd+Shift+V`: Paste URL into Replay
 - `Ctrl/Cmd+Shift+E`: Cycle the HTTP History `Request alteration` mode and return focus to the request pane
+
+## DOM customization caveat
+
+Hiding the Replay `HTTP` tag depends on Caido's current session-tab DOM structure. If Replay tab names disappear after a future Caido update, this customization may be the cause; check the injected Replay style in `packages/frontend/src/replayUrl/register.ts` first.
 
 ## Enable converted Replay sending
 
