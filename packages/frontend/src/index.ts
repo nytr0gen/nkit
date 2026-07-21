@@ -35,7 +35,9 @@ export const init = (sdk: FrontendSDK) => {
     body: root,
   });
 
-  sdk.sidebar.registerItem("nkit", "/nkit");
+  sdk.sidebar.registerItem("nkit", "/nkit", {
+    icon: "fas fa-flask",
+  });
   registerHttpHistoryFeature(sdk);
   registerMatchReplaceFeature(sdk);
   registerNvertorFeature(sdk);
