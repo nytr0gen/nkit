@@ -57,8 +57,8 @@ Transforms can be nested. repeat and loop accept integers from 0 to 10000.`;
         <h2 class="mt-6 mb-2 text-base font-semibold">Shortcuts</h2>
         <ul class="m-0 pl-5 flex flex-col gap-2 text-sm">
           <li>
-            <code>Ctrl/Cmd+Shift+C</code>: Copy URL from Replay, HTTP History,
-            and Automate request editors.
+            <code>Ctrl/Cmd+Shift+C</code>: Copy URL from request editors in
+            Replay, HTTP History, Automate, Findings, Sitemap, and Search.
           </li>
           <li><code>Ctrl/Cmd+Shift+V</code>: Paste a URL into Replay.</li>
           <li>
@@ -69,7 +69,10 @@ Transforms can be nested. repeat and loop accept integers from 0 to 10000.`;
 
         <h2 class="mt-6 mb-2 text-base font-semibold">Other tools</h2>
         <ul class="m-0 pl-5 flex flex-col gap-2 text-sm">
-          <li>Copy URLs from Replay, HTTP History, and Automate requests.</li>
+          <li>
+            Copy URLs from Replay, HTTP History, Automate, Findings, Sitemap,
+            and Search requests.
+          </li>
           <li>Copy the URL of one selected HTTP History row.</li>
           <li>
             Paste a URL into Replay to create and send a fresh GET request;

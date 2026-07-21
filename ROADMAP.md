@@ -1,4 +1,3 @@
-- copy url - should work in Findings + Sitemap
 - i need some kind of crawler / spider to keep track of all possible links
 - Replay - should auto convert on paste from \n to \r\n, and HTTP/2 to HTTP/1.1
 

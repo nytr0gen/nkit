@@ -125,9 +125,18 @@ export const MatchReplaceSlot = {
 
 export type FrontendSDK = Omit<
   BaseFrontendSDK,
-  "httpHistory" | "matchReplace" | "replay" | "window"
+  | "findings"
+  | "httpHistory"
+  | "matchReplace"
+  | "replay"
+  | "search"
+  | "sitemap"
+  | "window"
 > & {
   automate: {
+    addRequestEditorExtension: (extension: Extension) => void;
+  };
+  findings: BaseFrontendSDK["findings"] & {
     addRequestEditorExtension: (extension: Extension) => void;
   };
   httpHistory: BaseFrontendSDK["httpHistory"] & {
@@ -177,6 +186,12 @@ export type FrontendSDK = Omit<
       callback: (event: { session: ReplaySession }) => void,
     ) => ListenerHandle;
     sendRequest: (sessionId: ID, options: SendRequestOptions) => Promise<void>;
+  };
+  search: BaseFrontendSDK["search"] & {
+    addRequestEditorExtension: (extension: Extension) => void;
+  };
+  sitemap: BaseFrontendSDK["sitemap"] & {
+    addRequestEditorExtension: (extension: Extension) => void;
   };
   window: BaseFrontendSDK["window"] & {
     getActiveEditor: () => ActiveEditor | undefined;

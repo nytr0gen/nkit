@@ -89,6 +89,7 @@ ComponentName/
 - Do not assume a shortcut can access the currently selected request row or request pane unless it is attached to an editor extension that provides editor-local state.
 - The published `@caido/sdk-frontend` root typings may lag behind documented runtime APIs.
 - When that happens, keep the stronger local wrapper in `packages/frontend/src/caido.ts` aligned with the docs/runtime instead of using `any` casts.
+- The documented/runtime `addRequestEditorExtension(...)` hooks for Findings, Sitemap, and Search are missing from the pinned frontend SDK typings; keep them in the local wrapper so editor-local shortcuts can be registered on those pages.
 - Match and Replace is one current example of that lag: the documented/runtime `addToSlot(...)`, `getCurrentRule()`, `onCurrentRuleChange(...)`, `toggleRule(...)`, and slot constants may not all exist in the published package typings, so keep the local wrapper aligned there too.
 
 ## Backend Rules
@@ -115,9 +116,9 @@ ComponentName/
 - `Copy URL` works through multiple supported paths:
   - `RequestContext` menu actions on request panes
   - `RequestRowContext` menu actions on request tables such as HTTP History
-  - editor-local keybindings in Replay, HTTP History, and Automate request editors
+  - editor-local keybindings in Replay, HTTP History, Automate, Findings, Sitemap, and Search request editors
 - `RequestRowContext` is reliable for right-click row actions, but not for global shortcuts.
-- HTTP History row selection alone is not enough for keyboard copy. The supported keyboard path is the readonly request editor that opens when a row is clicked.
+- Table row selection alone is not enough for keyboard copy. The supported keyboard path is the readonly request editor that opens when a row is clicked; this applies to HTTP History, Findings, Sitemap, and Search.
 - Caido does not currently expose a supported API to change the default built-in HTTP History request tab from `Original Request` to another built-in variant.
 - The old custom HTTP History `Final` request view mode was removed; the active customization is now the `Ctrl/Cmd+Shift+E` request-alteration toggle plus the global CSS override for the pane header text width.
 - Imported frontend CSS is prefix-wrapped under `#plugin--nkit` by the build config.
@@ -133,6 +134,7 @@ ComponentName/
   - clicking the built-in dropdown changes focus unless a request editor element is explicitly refocused after the option click
   - any future DOM hack here should fail closed if selectors or focus behavior drift
 - Automate copy uses the same request-editor-extension approach as HTTP History and Replay.
+- Findings, Sitemap, and Search copy use that same request-editor-extension approach.
 - Replay copy from editor falls back to backend request lookup for host, TLS, and port when the raw request only provides a relative target.
 - Replay paste is intentionally side-effecting:
   - it does not patch the existing draft in place

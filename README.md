@@ -4,7 +4,7 @@ nytr0gen toolkit for caido.
 
 ## Features
 
-- Copy URL from request panes, Replay, HTTP History, and Automate
+- Copy URL from request panes in Replay, HTTP History, Automate, Findings, Sitemap, and Search
 - Copy URL from selected HTTP History rows through the right-click menu
 - Paste a URL into Replay; it trims input, prefixes `https://` when missing, updates the target, and sends the request
 - Replay `nvertor` templates such as `<@url>...</@>`, `<@urld>...</@>`, `<@urlall>...</@>`, `<@urlalld>...</@>`, `<@b64>...</@>`, `<@b64d>...</@>`, `<@html>...</@>`, `<@htmld>...</@>`, `<@repeat(3)>...</@>` (also `<@loop(3)>...</@>`), and generator tags like `<@uuid>` or `<@uuid/>`, plus `<@ts>` or `<@ts/>`
@@ -16,7 +16,7 @@ nytr0gen toolkit for caido.
 
 ## Shortcuts
 
-- `Ctrl/Cmd+Shift+C`: Copy URL from Replay, HTTP History, and Automate request editors
+- `Ctrl/Cmd+Shift+C`: Copy URL from Replay, HTTP History, Automate, Findings, Sitemap, and Search request editors
 - `Ctrl/Cmd+Shift+V`: Paste URL into Replay
 - `Ctrl/Cmd+Shift+E`: Cycle the HTTP History `Request alteration` mode and return focus to the request pane
 

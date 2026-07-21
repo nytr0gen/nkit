@@ -60,16 +60,25 @@ export const registerReplayUrlFeature = (sdk: FrontendSDK) => {
     leadingIcon: "fas fa-paste",
   });
 
-  sdk.replay.addRequestEditorExtension(
-    keymap.of([
-      {
-        key: "Mod-Shift-c",
-        preventDefault: true,
-        run: (view) => {
-          void copyReplayUrlFromEditor(sdk, view.state.doc.toString());
-          return true;
-        },
+  const copyUrlKeymap = keymap.of([
+    {
+      key: "Mod-Shift-c",
+      preventDefault: true,
+      run: (view) => {
+        void copyReplayUrlFromEditor(sdk, view.state.doc.toString());
+        return true;
       },
+    },
+  ]);
+
+  sdk.automate.addRequestEditorExtension(copyUrlKeymap);
+  sdk.findings.addRequestEditorExtension(copyUrlKeymap);
+  sdk.httpHistory.addRequestEditorExtension(copyUrlKeymap);
+  sdk.search.addRequestEditorExtension(copyUrlKeymap);
+  sdk.sitemap.addRequestEditorExtension(copyUrlKeymap);
+  sdk.replay.addRequestEditorExtension([
+    copyUrlKeymap,
+    keymap.of([
       {
         key: "Mod-Shift-v",
         preventDefault: true,
@@ -79,29 +88,5 @@ export const registerReplayUrlFeature = (sdk: FrontendSDK) => {
         },
       },
     ]),
-  );
-  sdk.httpHistory.addRequestEditorExtension(
-    keymap.of([
-      {
-        key: "Mod-Shift-c",
-        preventDefault: true,
-        run: (view) => {
-          void copyReplayUrlFromEditor(sdk, view.state.doc.toString());
-          return true;
-        },
-      },
-    ]),
-  );
-  sdk.automate.addRequestEditorExtension(
-    keymap.of([
-      {
-        key: "Mod-Shift-c",
-        preventDefault: true,
-        run: (view) => {
-          void copyReplayUrlFromEditor(sdk, view.state.doc.toString());
-          return true;
-        },
-      },
-    ]),
-  );
+  ]);
 };
