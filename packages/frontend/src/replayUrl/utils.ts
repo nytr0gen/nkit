@@ -1,7 +1,7 @@
 const chromeUserAgent =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.7680.165 Safari/537.36";
 
-export type ParsedHttpUrl = {
+type ParsedHttpUrl = {
   host: string;
   hostname: string;
   href: string;

@@ -14,6 +14,9 @@ importers:
       '@caido/eslint-config':
         specifier: ^0.5.0
         version: 0.5.0(@typescript-eslint/parser@8.26.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.5.4))(eslint@9.29.0(jiti@2.4.2))(prettier@3.8.1)(typescript@5.5.4)
+      '@caido/plugin-manifest':
+        specifier: 0.3.0
+        version: 0.3.0
       '@caido/tailwindcss':
         specifier: 0.0.1
         version: 0.0.1
@@ -23,6 +26,9 @@ importers:
       eslint:
         specifier: 9.29.0
         version: 9.29.0(jiti@2.4.2)
+      jszip:
+        specifier: 3.10.1
+        version: 3.10.1
       knip:
         specifier: 5.70.2
         version: 5.70.2(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@25.5.2)(typescript@5.5.4)
@@ -38,6 +44,9 @@ importers:
       typescript:
         specifier: 5.5.4
         version: 5.5.4
+      vite:
+        specifier: 6.0.7
+        version: 6.0.7(@types/node@25.5.2)(jiti@2.4.2)(yaml@2.8.3)
 
   packages/backend:
     devDependencies:
@@ -75,6 +84,12 @@ importers:
       vue-tsc:
         specifier: 2.0.29
         version: 2.0.29(typescript@5.5.4)
+
+  packages/workflows:
+    devDependencies:
+      '@caido/sdk-workflow':
+        specifier: 0.57.1
+        version: 0.57.1
 
 packages:
 
@@ -119,6 +134,9 @@ packages:
   '@caido/quickjs-types@0.17.2':
     resolution: {integrity: sha512-5kcucGORMNEbcdU91yKLYZG/TFDqsO6XmCZ1TnU6V48E61mmqrJg6kjrfOFP1WOugDm+ZcGd/Su3p3XkFXfaPg==}
 
+  '@caido/quickjs-types@0.26.0':
+    resolution: {integrity: sha512-Nnpu87fnTvVxEdLUQXAc9d763vj13GPcQEhSWireuLlDPDgxM/7dK8kZdOhGX/BhWRRZ7nUzNc3IdN+OVdsoSA==}
+
   '@caido/sdk-backend@0.46.0':
     resolution: {integrity: sha512-peUKW/4Nrw9WVxIahc+6KrVtxA7vsbpuJqOoBxudxq7tQJ+cV9IEqzvYoFFo8KlnrTkeUQUJvd0W4WsM3HgxEg==}
 
@@ -129,6 +147,9 @@ packages:
 
   '@caido/sdk-shared@0.1.1':
     resolution: {integrity: sha512-JAV5ajUqxZdXYPTmDEvIKBZon8I5uHq44ATj0Nj3BVpllRDUGY9kcBd+PXMD50+3lv1CvhR3/f6q24T0+4aVJQ==}
+
+  '@caido/sdk-workflow@0.57.1':
+    resolution: {integrity: sha512-tzQFc2zXuc4LTZUVqOmYdBUPkiJobQK3MXul0u0pDFL7eh4farFFTtha+lhrBaEnfqzJ5x9qce8L7DIjnK8iMA==}
 
   '@caido/tailwindcss@0.0.1':
     resolution: {integrity: sha512-BGp7s8BiZv6eBV8x/j0t5nPBVKP7Bm+gJVY4APcFgFkNkrRSRDo0VuXN52OhiHc/+vTg85lrmLO8IWMM5bcJrQ==}
@@ -2638,6 +2659,8 @@ snapshots:
 
   '@caido/quickjs-types@0.17.2': {}
 
+  '@caido/quickjs-types@0.26.0': {}
+
   '@caido/sdk-backend@0.46.0':
     dependencies:
       '@caido/quickjs-types': 0.17.2
@@ -2648,6 +2671,10 @@ snapshots:
       '@codemirror/view': 6.28.1
 
   '@caido/sdk-shared@0.1.1': {}
+
+  '@caido/sdk-workflow@0.57.1':
+    dependencies:
+      '@caido/quickjs-types': 0.26.0
 
   '@caido/tailwindcss@0.0.1':
     dependencies:

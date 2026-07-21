@@ -16,7 +16,7 @@ type Result<T> =
   | { kind: "Error"; error: string; variant: "error" | "warning" }
   | { kind: "Ok"; value: T };
 
-export type RequestContext = {
+type RequestContext = {
   type: "RequestContext";
   request: {
     host: string;
@@ -35,7 +35,7 @@ type RequestRow = {
   query: string;
 };
 
-export type RequestRowContext = {
+type RequestRowContext = {
   type: "RequestRowContext";
   requests: RequestRow[];
 };
@@ -55,6 +55,29 @@ const copyText = async (sdk: FrontendSDK, text: string) => {
   } catch {
     sdk.window.showToast("Failed to copy URL", { variant: "error" });
   }
+};
+
+const waitForReplaySessionCreation = (
+  sdk: FrontendSDK,
+  sessionIdsBefore: Set<string>,
+) => {
+  // eslint-disable-next-line compat/compat
+  return new Promise<string | undefined>((resolve) => {
+    const listener = sdk.replay.onSessionCreate((event) => {
+      if (sessionIdsBefore.has(event.session.id)) {
+        return;
+      }
+
+      window.clearTimeout(timeoutId);
+      listener.stop();
+      resolve(event.session.id);
+    });
+
+    const timeoutId = window.setTimeout(() => {
+      listener.stop();
+      resolve(undefined);
+    }, 1000);
+  });
 };
 
 export const getReplayUrlFromRawRequest = async (
@@ -210,20 +233,36 @@ export const pasteReplayUrlIntoReplay = async (sdk: FrontendSDK) => {
     return;
   }
 
-  const currentSession = sdk.replay.getCurrentSession();
-  if (currentSession === undefined) {
-    sdk.window.showToast("No Replay session is currently selected", {
-      variant: "warning",
-    });
-    return;
-  }
-
   try {
-    await sdk.replay.sendRequest(currentSession.id, {
-      connectionInfo: getUrlConnectionInfo(url),
-      raw: buildReplayRawRequest(url),
-      overwriteDraft: true,
-      updateContentLength: false,
+    const currentSession = sdk.replay.getCurrentSession();
+    const sessionIdsBefore = new Set(
+      sdk.replay.getSessions().map((session) => session.id),
+    );
+    const nextSessionId = waitForReplaySessionCreation(sdk, sessionIdsBefore);
+
+    await sdk.replay.createSession(
+      {
+        connectionInfo: getUrlConnectionInfo(url),
+        raw: buildReplayRawRequest(url),
+        type: "Raw",
+      },
+      currentSession?.collectionId,
+    );
+
+    const sessionId =
+      sdk.replay
+        .getSessions()
+        .find((session) => !sessionIdsBefore.has(session.id))?.id ??
+      (await nextSessionId);
+    if (sessionId === undefined) {
+      sdk.window.showToast("Failed to create a Replay session", {
+        variant: "error",
+      });
+      return;
+    }
+
+    await sdk.replay.sendRequest(sessionId, {
+      background: false,
     });
     sdk.window.showToast("URL pasted into Replay and request sent", {
       variant: "success",

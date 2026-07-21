@@ -4,69 +4,42 @@ import {
   canCopyConvertedRequest,
   copyConvertedRequest,
   copyConvertedUrl,
-  sendConvertedRequest,
 } from "./actions";
 import ConvertedRequestView from "./ConvertedRequestView.vue";
 import { setReplayCurrentSessionId, setReplayDraftRaw } from "./store";
 
-import { type FrontendSDK, ReplaySlot } from "@/caido";
+import type { FrontendSDK } from "@/caido";
 
 const copyConvertedRequestCommandId = "nkit.copy-converted-request";
 const copyConvertedUrlCommandId = "nkit.copy-converted-url";
-const sendConvertedRequestCommandId = "nkit.send-converted-request";
-
-const syncReplayDraftFromActiveEditor = (sdk: FrontendSDK) => {
-  const currentSession = sdk.replay.getCurrentSession();
-  setReplayCurrentSessionId(currentSession?.id);
-
-  if (currentSession === undefined) {
-    return;
-  }
-
-  if (sdk.window.getContext().page?.kind !== "Replay") {
-    return;
-  }
-
-  const activeEditor = sdk.window.getActiveEditor();
-  if (activeEditor === undefined) {
-    return;
-  }
-
-  setReplayDraftRaw(
-    currentSession.id,
-    activeEditor.getEditorView().state.doc.toString(),
-  );
-};
 
 const buildReplayDraftTracker = (sdk: FrontendSDK) => {
   return ViewPlugin.fromClass(
     class {
-      constructor() {
-        syncReplayDraftFromActiveEditor(sdk);
+      constructor(editorView: ViewUpdate["view"]) {
+        this.sync(editorView.state.doc.toString());
       }
 
       update(update: ViewUpdate) {
+        this.sync(update.state.doc.toString());
+      }
+
+      private sync(rawRequest: string) {
         const currentSession = sdk.replay.getCurrentSession();
         if (currentSession === undefined) {
           return;
         }
 
         setReplayCurrentSessionId(currentSession.id);
-        setReplayDraftRaw(currentSession.id, update.state.doc.toString());
+        setReplayDraftRaw(currentSession.id, rawRequest);
       }
     },
   );
 };
 
 export const registerNvertorFeature = (sdk: FrontendSDK) => {
-  syncReplayDraftFromActiveEditor(sdk);
-
   sdk.replay.onCurrentSessionChange((event) => {
     setReplayCurrentSessionId(event.sessionId);
-    syncReplayDraftFromActiveEditor(sdk);
-  });
-  sdk.window.onContextChange(() => {
-    syncReplayDraftFromActiveEditor(sdk);
   });
 
   sdk.commands.register(copyConvertedRequestCommandId, {
@@ -99,19 +72,6 @@ export const registerNvertorFeature = (sdk: FrontendSDK) => {
     },
   });
 
-  sdk.commands.register(sendConvertedRequestCommandId, {
-    group: "nvertor",
-    name: "Send Converted Request",
-    run: async () => {
-      await sendConvertedRequest(sdk);
-    },
-    when: () => {
-      return sdk.window.getContext().page?.kind === "Replay";
-    },
-  });
-  sdk.shortcuts.register(sendConvertedRequestCommandId, ["Control", "Enter"]);
-  sdk.shortcuts.register(sendConvertedRequestCommandId, ["Meta", "Enter"]);
-
   sdk.menu.registerItem({
     commandId: copyConvertedRequestCommandId,
     leadingIcon: "fas fa-copy",
@@ -121,12 +81,6 @@ export const registerNvertorFeature = (sdk: FrontendSDK) => {
     commandId: copyConvertedUrlCommandId,
     leadingIcon: "fas fa-link",
     type: "Request",
-  });
-
-  sdk.replay.addToSlot(ReplaySlot.SessionToolbarSecondary, {
-    commandId: sendConvertedRequestCommandId,
-    icon: "fas fa-wand-magic-sparkles",
-    kind: "Command",
   });
 
   sdk.replay.addRequestViewMode({

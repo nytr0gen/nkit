@@ -8,6 +8,7 @@ This repository is a personal Caido utility plugin with:
 
 - `packages/frontend`: Vue + PrimeVue UI running inside the Caido app
 - `packages/backend`: Caido backend API handlers
+- `packages/workflows`: packaged Caido workflow sources
 - `caido.config.ts`: plugin packaging/configuration
 
 Use this file as the working contract for any agent making changes in this repo.
@@ -16,6 +17,7 @@ Use this file as the working contract for any agent making changes in this repo.
 
 - Keep frontend work inside `packages/frontend`.
 - Keep backend work inside `packages/backend`.
+- Keep packaged workflow sources inside `packages/workflows`.
 - Treat frontend/backend as a typed pair: frontend calls backend through the exported backend `API` type.
 - Preserve the current plugin mounting pattern in `packages/frontend/src/index.ts`, including the prefixed root element used to avoid style collisions.
 - The current plugin identity is `nkit`.
@@ -23,6 +25,7 @@ Use this file as the working contract for any agent making changes in this repo.
 - HTTP History behavior is organized under `packages/frontend/src/httpHistory`.
 - Replay URL behavior is organized under `packages/frontend/src/replayUrl`.
 - nvertor Replay templating behavior is organized under `packages/frontend/src/nvertor`.
+- The nvertor Match and Replace Convert workflow is organized under `packages/workflows/src/nvertor-convert`.
 
 ## Required Workflow
 
@@ -133,8 +136,9 @@ ComponentName/
 - Replay copy from editor falls back to backend request lookup for host, TLS, and port when the raw request only provides a relative target.
 - Replay paste is intentionally side-effecting:
   - it does not patch the existing draft in place
-  - it builds a fresh request from the pasted URL
-  - it calls `sdk.replay.sendRequest(..., { overwriteDraft: true, ... })`
+  - on Caido 0.57+, it builds a fresh request and Replay session from the pasted URL, keeping the current collection when possible
+  - it waits for `sdk.replay.onSessionCreate(...)` because `createSession(...)` does not return the created session ID
+  - it sends the new session through the draft-based `sdk.replay.sendRequest(...)`
   - it therefore updates the Replay target and also sends the request
 - Replay paste must work even on an empty Replay editor.
 - Replay paste intentionally ignores the current raw editor contents and always builds its own request template.
@@ -149,20 +153,25 @@ ComponentName/
 - Match and Replace rule duplication is implemented as a documented `MatchReplaceSlot.UpdateHeader` button, not a DOM hack or context-menu hack.
 - Duplicate rule naming should stay collection-local and use the next trailing numeric suffix: `Rule`, `Rule 2`, `Rule 3`, ...
 - nvertor keeps `<@...>` tags in the Replay editor and renders the converted output in the custom Replay request view mode labeled `Converted`.
-- Caido does not currently expose a supported pre-send hook for the built-in Replay send action.
-- Because of that, transformed Replay sending must go through the plugin-owned `Send Converted Request` action or the global Replay `Ctrl/Cmd+Enter` shortcut.
+- nvertor transformed sends go through the packaged `nvertor Convert` workflow plus a user-created Match and Replace rule: `Request Raw`, `Full`, `Workflow: nvertor Convert`, source `Replay`.
+- nvertor does not own Replay sending or bind `Ctrl/Cmd+Enter`; Caido's native send action applies the Match and Replace workflow while leaving the tagged draft in the editor.
+- Caido 0.57 removed `raw`, `connectionInfo`, `overwriteDraft`, and `updateContentLength` from the published frontend `SendRequestOptions`; `sdk.replay.sendRequest(...)` now sends the session's current draft and only exposes the `background` option. A local compatibility type for the older signature can hide this runtime break, and the generated online Replay reference may lag behind the published package typings.
+- Caido 0.57's GraphQL `startReplayTask` mutation is also draft-based and accepts only a Replay session ID. Using GraphQL to send converted raw text would still require mutating the Replay entry draft first (including its connection, editor state, and settings), so it is not a direct replacement for the removed frontend send options.
+- Backend `sdk.events.onUpstream(...)` is only invoked when the plugin is enabled for the request domain in Caido's Upstream Plugins settings, and it can replace the outgoing request with a `RequestSpec` before the target is contacted.
+- Caido 0.57's frontend GraphQL schema exposes upstream-plugin query/create/update operations with `enabled`, `allowlist`, and `denylist` fields. Treat that configuration as shared network state rather than page-local UI state; do not couple it directly to Replay page visibility.
+- A Match and Replace `Workflow` replacer runs a Convert workflow on the bytes matched by that rule. Current Caido exposes `Request Raw`, so a `Full` matcher passes the complete raw request to nvertor in one workflow invocation.
+- Caido sends an empty replacement when a Match and Replace workflow throws. The nvertor workflow must catch runtime failures and return the original input; parser or transform errors must also return the original input instead of throwing.
+- Caido plugin manifests support `kind: "workflow"` components, but `@caido-community/dev` 0.1.6 currently accepts workflow entries in `caido.config.ts` and then omits them while building the package because its build/bundle path only emits frontend and backend outputs. The root build therefore runs `scripts/packageWorkflow.mjs` after `caido-dev build` to compile the workflow, append it to the manifest, and rebuild the ZIP.
+- `pnpm watch` does not run the workflow packaging postprocessor. After changing workflow code or its shared renderer, run `pnpm build` and reinstall the generated package to test the packaged workflow.
 - `Copy Converted Request` is registered as a `RequestContext` menu item but must stay gated to the Replay page through the command `when(...)` handler.
-- The nvertor transform registry lives in `packages/frontend/src/nvertor/render.ts`; add new functions there instead of adding one-off parser branches.
+- The nvertor transform registry and conversion engine live in `packages/workflows/src/nvertor-convert/render.ts`. The workflow owns this implementation and the frontend imports it for preview and copy behavior; do not make the workflow depend on frontend/plugin code.
+- The nvertor renderer must remain standalone and compatible with Caido's QuickJS workflow runtime. Avoid browser-only globals such as `window`, `document`, `btoa`, `atob`, `TextEncoder`, `TextDecoder`, or Web Crypto in that module.
 - nvertor generator tags such as `uuid` and `ts` should accept both `<@tag>` and `<@tag/>`; do not require closing tags for generators.
 - nvertor transform tags may use the exact wildcard closing form `</@>` to close the current open transform; named closing tags should stay strict and must still match the current transform when present.
-- `repeat` is a transform-only nvertor tag with required integer argument syntax `<@repeat(n)>...</@>`; allow `0`, reject spaces/decimals/negatives, and fail closed above `10000`.
-- `htmld` must stay a pure string/entity decoder in `packages/frontend/src/nvertor/render.ts`; do not reintroduce DOM parsing through `innerHTML` or `DOMParser`.
-- nvertor preview, copy, and send rerender from the current template source each time; do not cache rendered results just to stabilize `uuid` or `ts`.
-- Replay editor text is normalized to `\n`, so nvertor must convert rendered requests back to HTTP `\r\n` before copy/send or Replay history may display the sent request as a single line.
-- nvertor should not rewrite `Content-Length` inside the renderer; rely on `sdk.replay.sendRequest(..., { updateContentLength: true })` for converted sends.
-- The global Replay `Ctrl/Cmd+Enter` shortcut runs through command `BaseContext`, so it must use the tracked current Replay draft from `packages/frontend/src/nvertor/store.ts` rather than assuming request-pane-local editor access.
-- Do not bind `Ctrl/Cmd+Enter` both globally and as a Replay request-editor keymap; that causes duplicate sends when the request editor has focus.
-- For a brand-new Replay draft with no prior session entry, nvertor falls back to the request Host header for connection info; if no port is present, it currently defaults first-send converted Replay to HTTPS on port 443.
+- `repeat` and its exact alias `loop` are transform-only nvertor tags with required integer argument syntax such as `<@repeat(n)>...</@>` or `<@loop(n)>...</@>`; allow `0`, reject spaces/decimals/negatives, and fail closed above `10000`.
+- `htmld` must stay a pure string/entity decoder in `packages/workflows/src/nvertor-convert/render.ts`; do not reintroduce DOM parsing through `innerHTML` or `DOMParser`.
+- nvertor preview, copy, and workflow execution rerender from their current template input each time; do not cache rendered results just to stabilize `uuid` or `ts`.
+- Replay editor text is normalized to `\n`, so copied converted requests must be converted back to HTTP `\r\n` or Replay history may display them as a single line.
 - `sdk.replay.createSession(...)` is not reliably followed by an immediately readable current session; when bootstrapping a first Replay send, wait for `onCurrentSessionChange(...)` before assuming the new session is selected.
 - Replay entries may not have a backing request object, so do not assume a Replay entry always exposes a request id.
 - For Replay-originated connection inference, prefer `entry.connection` and only use request `Host` header overrides when present; do not round-trip through backend request lookup just to recover host/TLS/port.
@@ -182,5 +191,6 @@ ComponentName/
   - frontend bootstrap at `packages/frontend/src/index.ts`
   - HTTP History feature at `packages/frontend/src/httpHistory`
   - replay URL feature at `packages/frontend/src/replayUrl`
+  - packaged nvertor Convert workflow at `packages/workflows/src/nvertor-convert`
   - backend API registration at `packages/backend/src/index.ts`
 - Keep new work aligned with this split unless the user requests a broader refactor.

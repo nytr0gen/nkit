@@ -14,6 +14,11 @@ const config: RawConfigurationOrFn = {
       entry: ["src/index.ts"],
       project: ["src/**/*.{ts,tsx,vue}"],
     },
+    "packages/workflows": {
+      entry: ["src/nvertor-convert/javascript.ts"],
+      project: ["src/**/*.ts"],
+      ignoreDependencies: ["caido"],
+    },
   },
 };
 

@@ -26,29 +26,6 @@ type RequestViewModeOptions = {
   when?: (request: RequestLike) => boolean;
 };
 
-type ReplaySlotButton = {
-  kind: "Button";
-  label?: string;
-  icon?: string;
-  onClick: () => void;
-};
-
-type ReplaySlotCommand = {
-  kind: "Command";
-  commandId: string;
-  icon?: string;
-};
-
-type ReplaySlotCustom = {
-  kind: "Custom";
-  component: ComponentDefinition;
-};
-
-type ReplaySlotContent =
-  | ReplaySlotButton
-  | ReplaySlotCommand
-  | ReplaySlotCustom;
-
 type ReplayEntry = {
   connection?: ReplayConnectionInfo;
   id: ID;
@@ -86,11 +63,6 @@ type ReplayRequestSource =
 
 type SendRequestOptions = {
   background?: boolean;
-  connectionClose?: boolean;
-  connectionInfo: ReplayConnectionInfo;
-  overwriteDraft?: boolean;
-  raw: string;
-  updateContentLength?: boolean;
 };
 
 type GlobalContext = {
@@ -146,12 +118,6 @@ type ActiveEditor = {
   getEditorView: () => EditorView;
 };
 
-export const ReplaySlot = {
-  SessionToolbarPrimary: "session-toolbar-primary",
-  SessionToolbarSecondary: "session-toolbar-secondary",
-  Topbar: "topbar",
-} as const;
-
 export const MatchReplaceSlot = {
   CreateHeader: "create-header",
   UpdateHeader: "update-header",
@@ -198,10 +164,6 @@ export type FrontendSDK = Omit<
   replay: BaseFrontendSDK["replay"] & {
     addRequestEditorExtension: (extension: Extension) => void;
     addRequestViewMode: (options: RequestViewModeOptions) => void;
-    addToSlot: (
-      slot: (typeof ReplaySlot)[keyof typeof ReplaySlot],
-      content: ReplaySlotContent,
-    ) => void;
     createSession: (
       source: ReplayRequestSource,
       collectionId?: ID,
@@ -210,6 +172,9 @@ export type FrontendSDK = Omit<
     getEntry: (entryId: ID) => ReplayEntry;
     onCurrentSessionChange: (
       callback: (event: { sessionId: ID | undefined }) => void,
+    ) => ListenerHandle;
+    onSessionCreate: (
+      callback: (event: { session: ReplaySession }) => void,
     ) => ListenerHandle;
     sendRequest: (sessionId: ID, options: SendRequestOptions) => Promise<void>;
   };
@@ -222,11 +187,4 @@ export type FrontendSDK = Omit<
   };
 };
 
-export type {
-  GlobalContext,
-  MatchReplaceRule,
-  MatchReplaceSource,
-  ReplayConnectionInfo,
-  ReplayEntry,
-  ReplaySession,
-};
+export type { MatchReplaceRule };
