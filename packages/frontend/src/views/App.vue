@@ -87,6 +87,15 @@ Transforms can be nested. repeat and loop accept integers from 0 to 10000.`;
             menu.
           </li>
           <li>
+            Normalize Replay Raw editor line endings to CRLF from the request
+            context menu, converting an <code>HTTP/2</code> request line to
+            <code>HTTP/1.1</code> when present.
+          </li>
+          <li>
+            Hide the <code>HTTP</code> tag in Replay session tabs to leave more
+            room for session names.
+          </li>
+          <li>
             Duplicate the current Match and Replace rule with the
             <code>Duplicate Rule</code> button.
           </li>

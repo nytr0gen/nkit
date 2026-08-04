@@ -45,7 +45,7 @@ const renderReplayRequest = (sdk: FrontendSDK, rawRequest: string) => {
   return normalizeHttpLineEndings(renderResult.value);
 };
 
-export const canCopyConvertedRequest = (
+export const canRunReplayRequestAction = (
   sdk: FrontendSDK,
   context: { type: string },
 ) => {
@@ -87,5 +87,35 @@ export const copyConvertedUrl = async (
   await copyText(sdk, result.value, {
     failure: "Failed to copy the converted URL",
     success: "Converted URL copied",
+  });
+};
+
+export const normalizeReplayRequest = (
+  sdk: FrontendSDK,
+  rawRequest: string,
+) => {
+  const editor = sdk.window.getActiveEditor();
+  if (editor === undefined || editor.isReadOnly()) {
+    sdk.window.showToast("No editable Replay request is active", {
+      variant: "warning",
+    });
+    return;
+  }
+
+  const editorView = editor.getEditorView();
+  editorView.dispatch({
+    selection: {
+      anchor: 0,
+      head: editorView.state.doc.length,
+    },
+  });
+  const normalizedRequest = normalizeHttpLineEndings(rawRequest).replace(
+    " HTTP/2\r\n",
+    " HTTP/1.1\r\n",
+  );
+  editor.replaceSelectedText(normalizedRequest);
+  editor.focus();
+  sdk.window.showToast("Line endings normalized to CRLF", {
+    variant: "success",
   });
 };

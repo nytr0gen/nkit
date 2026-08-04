@@ -14,9 +14,14 @@ import type { FrontendSDK } from "@/types";
 const copyReplayUrlCommandId = "nkit.copy-replay-url";
 const pasteReplayUrlCommandId = "nkit.paste-replay-url";
 const styleId = "nkit-replay-style";
-const replayCss = `[data-session-id] > [data-pc-name="buttongroup"] > button:first-child > div:first-of-type {
+const replayCss = `
+[data-session-id] > [data-pc-name="buttongroup"] > button:first-child > div:first-of-type {
   display: none;
-}`;
+}
+[data-pc-name="splitterpanel"] tr.c-tree-row [data-pc-name="tag"] {
+  display: none;
+}
+`;
 
 const ensureReplayStyle = (document: Document) => {
   if (document.getElementById(styleId) !== null) {

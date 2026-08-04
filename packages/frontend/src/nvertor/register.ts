@@ -1,9 +1,10 @@
 import { ViewPlugin, type ViewUpdate } from "@codemirror/view";
 
 import {
-  canCopyConvertedRequest,
+  canRunReplayRequestAction,
   copyConvertedRequest,
   copyConvertedUrl,
+  normalizeReplayRequest,
 } from "./actions";
 import ConvertedRequestView from "./ConvertedRequestView.vue";
 import { setReplayCurrentSessionId, setReplayDraftRaw } from "./store";
@@ -12,6 +13,7 @@ import type { FrontendSDK } from "@/caido";
 
 const copyConvertedRequestCommandId = "nkit.copy-converted-request";
 const copyConvertedUrlCommandId = "nkit.copy-converted-url";
+const normalizeLineEndingsCommandId = "nkit.normalize-line-endings";
 
 const buildReplayDraftTracker = (sdk: FrontendSDK) => {
   return ViewPlugin.fromClass(
@@ -53,7 +55,7 @@ export const registerNvertorFeature = (sdk: FrontendSDK) => {
       await copyConvertedRequest(sdk, context.request.raw);
     },
     when: (context) => {
-      return canCopyConvertedRequest(sdk, context);
+      return canRunReplayRequestAction(sdk, context);
     },
   });
 
@@ -68,7 +70,22 @@ export const registerNvertorFeature = (sdk: FrontendSDK) => {
       await copyConvertedUrl(sdk, context.request.raw);
     },
     when: (context) => {
-      return canCopyConvertedRequest(sdk, context);
+      return canRunReplayRequestAction(sdk, context);
+    },
+  });
+
+  sdk.commands.register(normalizeLineEndingsCommandId, {
+    group: "nvertor",
+    name: "Normalize Line Endings",
+    run: (context) => {
+      if (context.type !== "RequestContext") {
+        return;
+      }
+
+      normalizeReplayRequest(sdk, context.request.raw);
+    },
+    when: (context) => {
+      return canRunReplayRequestAction(sdk, context);
     },
   });
 
@@ -80,6 +97,11 @@ export const registerNvertorFeature = (sdk: FrontendSDK) => {
   sdk.menu.registerItem({
     commandId: copyConvertedUrlCommandId,
     leadingIcon: "fas fa-link",
+    type: "Request",
+  });
+  sdk.menu.registerItem({
+    commandId: normalizeLineEndingsCommandId,
+    leadingIcon: "fas fa-align-left",
     type: "Request",
   });
 

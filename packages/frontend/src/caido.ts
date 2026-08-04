@@ -115,7 +115,10 @@ type MatchReplaceSlotContent =
   | MatchReplaceSlotCustom;
 
 type ActiveEditor = {
+  focus: () => void;
   getEditorView: () => EditorView;
+  isReadOnly: () => boolean;
+  replaceSelectedText: (text: string) => void;
 };
 
 export const MatchReplaceSlot = {
