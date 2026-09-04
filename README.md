@@ -7,7 +7,7 @@ nytr0gen toolkit for caido.
 - Copy URL from request panes in Replay, HTTP History, Automate, Findings, Sitemap, and Search
 - Copy URL from selected HTTP History rows through the right-click menu
 - Paste a URL into Replay; it trims input, prefixes `https://` when missing, updates the target, and sends the request
-- Replay `nvertor` templates such as `<@url>...</@>`, `<@urld>...</@>`, `<@urlall>...</@>`, `<@urlalld>...</@>`, `<@b64>...</@>`, `<@b64d>...</@>`, `<@html>...</@>`, `<@htmld>...</@>`, `<@repeat(3)>...</@>` (also `<@loop(3)>...</@>`), and generator tags like `<@uuid>` or `<@uuid/>`, plus `<@ts>` or `<@ts/>`
+- Replay `nvertor` templates such as `<@url>...</@>`, `<@urld>...</@>`, `<@urlall>...</@>`, `<@b64>...</@>`, `<@b64d>...</@>`, `<@html>...</@>`, `<@htmld>...</@>`, `<@repeat(3)>...</@>` (also `<@loop(3)>...</@>`), and generator tags like `<@uuid>` or `<@uuid/>`, plus `<@ts>` or `<@ts/>`
 - Explicit tag closing also works, like `<@url>...</@url>`
 - A Replay `Converted` request pane that shows the rendered request without altering the editor draft
 - Native Replay sending through the packaged `nvertor Convert` workflow, plus `Copy Converted Request` and `Copy Converted URL` from the Replay request context menu

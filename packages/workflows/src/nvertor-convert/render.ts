@@ -310,6 +310,17 @@ const repeatTransform: TransformDefinition = {
   },
 };
 
+const urlDecodeTransform: TransformDefinition = {
+  kind: "transform",
+  apply: (value) => {
+    try {
+      return ok(decodeURIComponent(value));
+    } catch {
+      return invalid("Invalid percent-encoded input");
+    }
+  },
+};
+
 const transformRegistry = {
   b64: {
     kind: "transform",
@@ -363,26 +374,8 @@ const transformRegistry = {
       return ok(encodeAllUrlBytes(value));
     },
   },
-  urlalld: {
-    kind: "transform",
-    apply: (value) => {
-      try {
-        return ok(decodeURIComponent(value));
-      } catch {
-        return invalid("Invalid percent-encoded input");
-      }
-    },
-  },
-  urld: {
-    kind: "transform",
-    apply: (value) => {
-      try {
-        return ok(decodeURIComponent(value));
-      } catch {
-        return invalid("Invalid percent-encoded input");
-      }
-    },
-  },
+  urlalld: urlDecodeTransform, // Same as urld.
+  urld: urlDecodeTransform,
   uuid: {
     kind: "generator",
     apply: () => {
