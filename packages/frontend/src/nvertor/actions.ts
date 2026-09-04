@@ -9,6 +9,24 @@ const normalizeHttpLineEndings = (rawRequest: string) => {
   return rawRequest.replaceAll(/\r?\n/g, "\r\n");
 };
 
+const normalizeBodylessRequestTerminator = (rawRequest: string) => {
+  const headerTerminator = "\r\n\r\n";
+  const headerEnd = rawRequest.indexOf(headerTerminator);
+
+  // The first empty line ends the header section. Anything other than extra
+  // CRLFs after it is request content, which this normalization leaves alone.
+  const hasBody =
+    headerEnd !== -1 &&
+    !/^(?:\r\n)*$/u.test(rawRequest.slice(headerEnd + headerTerminator.length));
+  if (hasBody) {
+    return rawRequest;
+  }
+
+  // Replace zero or more trailing CRLFs with the single empty line required
+  // between an HTTP/1.1 header section and an empty body.
+  return rawRequest.replace(/(?:\r\n)*$/u, headerTerminator);
+};
+
 const copyText = async (
   sdk: FrontendSDK,
   text: string,
@@ -109,9 +127,11 @@ export const normalizeReplayRequest = (
       head: editorView.state.doc.length,
     },
   });
-  const normalizedRequest = normalizeHttpLineEndings(rawRequest).replace(
-    " HTTP/2\r\n",
-    " HTTP/1.1\r\n",
+  const normalizedRequest = normalizeBodylessRequestTerminator(
+    normalizeHttpLineEndings(rawRequest.trimStart()).replace(
+      " HTTP/2\r\n",
+      " HTTP/1.1\r\n",
+    ),
   );
   editor.replaceSelectedText(normalizedRequest);
   editor.focus();
