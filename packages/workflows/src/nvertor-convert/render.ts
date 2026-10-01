@@ -511,7 +511,6 @@ const pushTextNode = (nodes: Node[], value: string) => {
 const parseNodes = (
   input: string,
   expectedTagName?: TransformName,
-  openingOffset?: number,
   startOffset = 0,
 ): ParseResult => {
   const nodes: Node[] = [];
@@ -603,7 +602,6 @@ const parseNodes = (
       const childResult = parseNodes(
         input,
         openTag.value.tagName,
-        cursor,
         openTag.value.nextOffset,
       );
       if (childResult.kind === "Error") {
@@ -626,15 +624,6 @@ const parseNodes = (
   }
 
   pushTextNode(nodes, input.slice(textStart));
-
-  if (expectedTagName !== undefined) {
-    return {
-      error: `Unclosed tag ${formatTag(expectedTagName)}`,
-      kind: "Error",
-      offset: openingOffset ?? 0,
-      tagName: expectedTagName,
-    };
-  }
 
   return {
     kind: "Ok",

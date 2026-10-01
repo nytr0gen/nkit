@@ -21,7 +21,8 @@ Closing tags
 </@>                       Close the current transform
 </@url>                    Close a specifically named transform
 
-Transforms can be nested. repeat and loop accept integers from 0 to 10000.`;
+Transforms can be nested. A transform without a closing tag applies through the end of the input.
+repeat and loop accept integers from 0 to 10000.`;
 </script>
 
 <template>

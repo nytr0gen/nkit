@@ -5,6 +5,7 @@
   "scripts": {
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint ./packages/**/src --fix",
+    "test": "node --experimental-strip-types packages/workflows/src/nvertor-convert/render.test.ts",
     "knip": "knip",
     "build": "caido-dev build && node scripts/packageWorkflow.mjs",
     "watch": "caido-dev watch"
