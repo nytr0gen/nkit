@@ -29,6 +29,18 @@ for (const [input, expected] of successCases) {
   }
 }
 
+const cappedRepeatValue = "x".repeat(100000);
+for (const input of [
+  "<@repeat(100000)>x",
+  "<@repeat(100001)>x",
+  "<@loop(999999999999999999999999)>x",
+]) {
+  const result = renderNvertorTemplate(input);
+  if (result.kind !== "Ok" || result.value !== cappedRepeatValue) {
+    throw new Error(`Expected ${input} to repeat at the 100000 limit`);
+  }
+}
+
 const errorCases = [
   ["<@url>x<@b64>y</@url>", "Expected closing tag </@b64>"],
   ["</@>", "Unexpected closing tag </@>"],

@@ -172,7 +172,7 @@ ComponentName/
 - The nvertor null transform `<@>...</@>` uses the normal paired transform parser and passes its contents through unchanged.
 - Any paired nvertor transform without a closing tag applies through the end of the input. Nested transforms implicitly close from innermost to outermost at EOF, while mismatched named closing tags remain errors.
 - nvertor transform tags may use the exact wildcard closing form `</@>` to close the current open transform; named closing tags should stay strict and must still match the current transform when present.
-- `repeat` and its exact alias `loop` are transform-only nvertor tags with required integer argument syntax such as `<@repeat(n)>...</@>` or `<@loop(n)>...</@>`; allow `0`, reject spaces/decimals/negatives, and fail closed above `10000`.
+- `repeat` and its exact alias `loop` are transform-only nvertor tags with required integer argument syntax such as `<@repeat(n)>...</@>` or `<@loop(n)>...</@>`; allow `0`, reject spaces/decimals/negatives, and cap values above `100000` at that limit.
 - `htmld` must stay a pure string/entity decoder in `packages/workflows/src/nvertor-convert/render.ts`; do not reintroduce DOM parsing through `innerHTML` or `DOMParser`.
 - nvertor preview, copy, and workflow execution rerender from their current template input each time; do not cache rendered results just to stabilize `uuid` or `ts`.
 - Replay editor text read through `ViewUpdate.state.doc.toString()` is normalized to `\n`, so copied converted requests must be converted back to HTTP `\r\n` or Replay history may display them as a single line.

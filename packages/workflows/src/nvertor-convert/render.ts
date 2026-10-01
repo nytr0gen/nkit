@@ -62,7 +62,7 @@ type ParseResult =
       value: Node[];
     };
 
-const maxRepeatCount = 10000;
+const maxRepeatCount = 100000;
 const base64Alphabet =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -423,10 +423,7 @@ const parseOpenTag = (input: string, offset: number) => {
       return invalid("Invalid repeat count");
     }
 
-    const repeatCount = Number.parseInt(argument, 10);
-    if (repeatCount > maxRepeatCount) {
-      return invalid(`Repeat count cannot exceed ${maxRepeatCount}`);
-    }
+    const repeatCount = Math.min(Number.parseInt(argument, 10), maxRepeatCount);
 
     const fullMatch = match[0];
     if (fullMatch === undefined) {
