@@ -11,6 +11,7 @@ const tagReference = `Transforms
 <@htmld>text</@>           HTML entity decode
 <@repeat(3)>text</@>       Repeat text three times
 <@loop(3)>text</@>         Alias for repeat
+<@>text</@>                Pass text through unchanged
 
 Generators
 <@uuid>  or <@uuid/>       Generate a UUID

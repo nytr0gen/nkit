@@ -169,6 +169,7 @@ ComponentName/
 - The nvertor transform registry and conversion engine live in `packages/workflows/src/nvertor-convert/render.ts`. The workflow owns this implementation and the frontend imports it for preview and copy behavior; do not make the workflow depend on frontend/plugin code.
 - The nvertor renderer must remain standalone and compatible with Caido's QuickJS workflow runtime. Avoid browser-only globals such as `window`, `document`, `btoa`, `atob`, `TextEncoder`, `TextDecoder`, or Web Crypto in that module.
 - nvertor generator tags such as `uuid` and `ts` should accept both `<@tag>` and `<@tag/>`; do not require closing tags for generators.
+- The nvertor null transform `<@>...</@>` uses the normal paired transform parser and passes its contents through unchanged.
 - nvertor transform tags may use the exact wildcard closing form `</@>` to close the current open transform; named closing tags should stay strict and must still match the current transform when present.
 - `repeat` and its exact alias `loop` are transform-only nvertor tags with required integer argument syntax such as `<@repeat(n)>...</@>` or `<@loop(n)>...</@>`; allow `0`, reject spaces/decimals/negatives, and fail closed above `10000`.
 - `htmld` must stay a pure string/entity decoder in `packages/workflows/src/nvertor-convert/render.ts`; do not reintroduce DOM parsing through `innerHTML` or `DOMParser`.

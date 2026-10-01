@@ -26,6 +26,7 @@ type TransformDefinition =
     };
 
 type TransformName =
+  | ""
   | "b64"
   | "b64d"
   | "html"
@@ -322,6 +323,10 @@ const urlDecodeTransform: TransformDefinition = {
 };
 
 const transformRegistry = {
+  "": {
+    kind: "transform",
+    apply: (value) => ok(value),
+  },
   b64: {
     kind: "transform",
     apply: (value) => {
@@ -397,15 +402,12 @@ const wildcardCloseTag = "</@>";
 const parseOpenTag = (input: string, offset: number) => {
   const match = input
     .slice(offset)
-    .match(/^<@([a-z][a-z0-9]*)(?:\(([^)]*)\))?(\s*\/)?>/);
+    .match(/^<@([a-z][a-z0-9]*)?(?:\(([^)]*)\))?(\s*\/)?>/);
   if (match === null) {
     return invalid("Invalid transform tag syntax");
   }
 
-  const tagName = match[1];
-  if (tagName === undefined) {
-    return invalid("Invalid transform tag syntax");
-  }
+  const tagName = match[1] ?? "";
 
   if (!isTransformName(tagName)) {
     return invalid(`Unknown transform ${tagName}`);
