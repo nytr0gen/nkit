@@ -29,6 +29,8 @@ type TransformName =
   | ""
   | "b64"
   | "b64d"
+  | "hex"
+  | "hexd"
   | "html"
   | "htmld"
   | "loop"
@@ -345,6 +347,34 @@ const transformRegistry = {
       return decoded === undefined
         ? invalid("Invalid Base64 input")
         : ok(decoded);
+    },
+  },
+  hex: {
+    kind: "transform",
+    apply: (value) => {
+      let encoded = "";
+      for (const character of value) {
+        const byte = character.charCodeAt(0);
+        if (byte <= 0xff) {
+          encoded += byte.toString(16).toUpperCase().padStart(2, "0");
+        }
+      }
+
+      return ok(encoded);
+    },
+  },
+  hexd: {
+    kind: "transform",
+    apply: (value) => {
+      const normalized = value.replaceAll(/[^a-f0-9]/gi, "");
+      let decoded = "";
+      for (let index = 0; index + 1 < normalized.length; index += 2) {
+        decoded += String.fromCharCode(
+          Number.parseInt(normalized.slice(index, index + 2), 16),
+        );
+      }
+
+      return ok(decoded);
     },
   },
   html: {

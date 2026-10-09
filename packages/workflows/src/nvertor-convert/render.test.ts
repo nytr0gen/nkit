@@ -1,6 +1,14 @@
 import { renderNvertorTemplate } from "./render.ts";
 
 const successCases = [
+  ["<@hex>\u0000\nabcéÿ😀</@>", "000A616263E9FF"],
+  ["<@hexd>61:62-63 e9! fF</@>", "abcéÿ"],
+  ["<@hexd>!xyz</@>", ""],
+  ["<@hexd>4-1-2</@>", "A"],
+  ["<@hexd>F</@>", ""],
+  ["<@hexd>FF</@>", "ÿ"],
+  ["<@hex></@>", ""],
+  ["<@hexd><@hex>hello éÿ</@></@>", "hello éÿ"],
   ["<@b64>abc", "YWJj"],
   ["<@urld>a%20b", "a b"],
   ["<@repeat(2)>ab", "abab"],

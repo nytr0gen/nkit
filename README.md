@@ -39,6 +39,8 @@ nytr0gen's utility toolkit for Caido.
 | `<@urlall>text</@>` | Percent-encode every UTF-8 byte |
 | `<@b64>text</@>` | Base64-encode UTF-8 text |
 | `<@b64d>text</@>` | Base64-decode UTF-8 text |
+| `<@hex>text</@>` | Hex-encode text |
+| `<@hexd>text</@>` | Hex-decode text |
 | `<@html>text</@>` | Encode HTML entities |
 | `<@htmld>text</@>` | Decode HTML entities |
 | `<@repeat(3)>text</@>` | Repeat text; `<@loop(3)>` is an alias |
